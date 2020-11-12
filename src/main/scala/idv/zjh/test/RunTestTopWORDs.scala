@@ -16,6 +16,7 @@ object RunTestTopWORDs {
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
     val corpus = spark.sparkContext.textFile(inputFile)
+
     new TopWORDS(
       tauL = 10,
       tauF = 3,
@@ -25,6 +26,8 @@ object RunTestTopWORDs {
       convergeTol = 1E-3,
       wordBoundaryThld = 0.0)
       .run(corpus, outputFile + "/dictionary", outputFile + "/segmented_texts")
+
+
       println("End ")
   }
 }
