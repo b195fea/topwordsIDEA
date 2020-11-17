@@ -13,11 +13,11 @@ import org.apache.spark.storage.StorageLevel
   *
   * @param tauL             threshold of word length
   * @param tauF             threshold of word frequency
-  * @param numIterations    number of iterations
-  * @param convergeTol      convergence tolerance
-  * @param textLenThld      preprocessing threshold of text length
-  * @param useProbThld      prune threshold of word use probability
-  * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to less than 0)
+  * @param numIterations    number of iterations                          迭代次數
+  * @param convergeTol      convergence tolerance                   1E-3  收斂判斷
+  * @param textLenThld      preprocessing threshold of text length  2000  文本长度的预处理阈值
+  * @param useProbThld      prune threshold of word use probability 1E-8  修剪单词使用概率的阈值
+  * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to less than 0) 分词边界得分的分割阈值
   */
 class TopWORDS(private val tauL: Int,
                private val tauF: Int,
@@ -31,9 +31,9 @@ class TopWORDS(private val tauL: Int,
   /**
     * Run the TopWORDS algorithm
     *
-    * @param corpus          training corpus
-    * @param outputDictLoc   output dictionary location
-    * @param outputCorpusLoc output segmented corpus location
+    * @param corpus          training corpus                    訓練語料庫
+    * @param outputDictLoc   output dictionary location         輸出字典位置
+    * @param outputCorpusLoc output segmented corpus location   输出分割语料位置
     */
   def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus 準備輸入語料庫

@@ -22,9 +22,11 @@ class Preprocessing(private val textLenThld: Int) extends Serializable {
   def run(corpus: RDD[String]): RDD[String] = {
     // importing spark implicits
     corpus.flatMap { T =>
+      // 使用标点和空格将段落分成几段文字
       // split the paragraph into several texts using punctuations and spaces
       T.split("\\pP|\\pS|\\s|　").map(_.trim)
     }.filter(_.length > 1).flatMap { T =>
+      //根据文本长度阈值分割文本
       // split text according to text length threshold
       if (T.length > textLenThld) {
         var splits = List[StringBuilder]() ::: List(new StringBuilder())
