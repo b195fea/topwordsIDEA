@@ -8,6 +8,13 @@ object scalaTest {
   }
   
   def main(args: Array[String]): Unit = {
-    "鍾嘉豪真的很棒".split("\\pP|\\pS|\\s|　")
+    var text = "鍾嘉豪真,的，，，很棒".split("\\pP|\\pS|\\s|　")
+    println(text.toString)
+    for(i <- 0 to text.length-1)
+      println(text(i))
+    var text2 = "a-b-c".split("-", 2)
+    println(text2)
+    for(i <- 0 to text2.length-1)
+      println(text2(i))
   }
 }
