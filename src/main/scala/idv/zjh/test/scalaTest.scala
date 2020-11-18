@@ -8,6 +8,6 @@ object scalaTest {
   }
   
   def main(args: Array[String]): Unit = {
-
+    "鍾嘉豪真的很棒".split("\\pP|\\pS|\\s|　")
   }
 }
