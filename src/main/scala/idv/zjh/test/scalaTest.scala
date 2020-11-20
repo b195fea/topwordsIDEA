@@ -13,8 +13,8 @@ object scalaTest {
   }
 
   def main(args: Array[String]): Unit = {
-    readFile()
-//    runRegex()
+//    readFile()
+    runRegex()
   }
 
   /**
@@ -30,7 +30,7 @@ object scalaTest {
     corpus.foreach(text => println(text))
     corpus.cache()
     println("count:" + corpus.count())
-
+    return corpus
 
   }
 
@@ -38,13 +38,17 @@ object scalaTest {
    * 執行正規表示法
    */
   def runRegex(): Unit ={
-    var text = "鍾嘉豪真,的，，，很棒".split("\\pP|\\pS|\\s|　")
-    println(text.toString)
-    for(i <- 0 to text.length-1)
+    //    var text = "鍾嘉豪真 ,的，==，dd，很棒".split("\\pP|\\pS|\\s|　")
+    //[\\pP]
+    //[\s]：空白、Tab
+    //[　]：全型空白
+    var text = "AA中BB，CC,DD".split("\\PP")
+    for(i <- 0 to text.length-1) {
       println(text(i))
-    var text2 = "a-b-c".split("-", 2)
-    println(text2)
-    for(i <- 0 to text2.length-1)
-      println(text2(i))
+    }
+    //    var text2 = "a-b-c".split("-", 2)    //    println(text2)
+    //    for(i <- 0 to text2.length-1) {
+    //      println(text2(i))
+    //    }
   }
 }
