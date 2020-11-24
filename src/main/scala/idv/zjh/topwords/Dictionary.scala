@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Dictionary (initial state is overcomplete for EM)
   *
-  * @param thetaS word use probability
+  * @param thetaS word use probability  文字使用評率
   * @param phiS   word significance
   */
 class Dictionary(val thetaS: Map[String, Double],
@@ -69,9 +69,11 @@ object Dictionary extends Serializable {
     //enumerate all the possible words: corpus -> words
     val words = corpus.flatMap { text =>
       val permutations = ListBuffer[String]()
-      for (i <- 1 to tauL) {
-        for (j <- 0 until text.length) {
-          if (j + i <= text.length) permutations += text.substring(j, j + i)
+      for (i <- 1 to tauL) {// to 包含 tauL
+        for (j <- 0 until text.length) {// until 不包含 text.length
+          if (j + i <= text.length) {
+            permutations += text.substring(j, j + i)
+          }
         }
       }
       permutations
@@ -79,6 +81,9 @@ object Dictionary extends Serializable {
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+
+
+
     //filter words by the use probability threshold: words -> prunedWords
     val sumWordFreq = words.map(_._2).sum()
     val prunedWords = words.map { case (word, freq) =>
@@ -90,6 +95,7 @@ object Dictionary extends Serializable {
     words.unpersist()
     prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     //normalize the word use probability: prunedWords -> normalizedWords
+    // _._2 表示取 第二個 map值
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
       word -> freq / sumPrunedWordFreq

@@ -6,16 +6,15 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 object scalaTest {
-  def addInt(a:Int,b:Int) : Int = {
-    var sum:Int = 0
-    sum = a + b
-    return sum
-  }
+
 
   def main(args: Array[String]): Unit = {
+
     val inputFile = "test_data/bh3_test2.txt"
+    // 取得 RDD
     val coups = readFile(inputFile)
-    var dictionaryOver = test2(coups)
+    // 將文字分段
+    var dictionaryOver = splitCorpus(coups,50)
     println("start")
     dictionaryOver.foreach(text => {
       println("-----------------------")
@@ -25,7 +24,12 @@ object scalaTest {
 
   }
 
-  def test2(corpus: RDD[String]): RDD[String] ={
+  /**
+   * 執行預處理， 以標點符號分段，並回傳RDD
+   * @param corpus
+   * @return
+   */
+  def splitCorpus(corpus: RDD[String],textLenThld :Int): RDD[String] ={
     // importing spark implicits
     corpus.flatMap { T =>
       // 使用标点和空格将段落分成几段文字
@@ -47,6 +51,10 @@ object scalaTest {
     }
   }
 
+  /**
+   *
+   * @param corpus
+   */
   def test(corpus: RDD[String]): Unit ={
     println("進入 test")
     corpus.foreach(text => {
@@ -89,7 +97,6 @@ object scalaTest {
 //    val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // master 服務器網址
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-
     val corpus = spark.sparkContext.textFile(inputFile)
     //corpus.foreach(text => println(text))
     corpus.cache()
