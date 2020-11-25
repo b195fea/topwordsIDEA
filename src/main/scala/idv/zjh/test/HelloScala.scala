@@ -14,6 +14,8 @@ object HelloScala {
     
     val s = "hello"
     println(s)
+
+
     
     var intType1 = 5
     var intType2 = 123

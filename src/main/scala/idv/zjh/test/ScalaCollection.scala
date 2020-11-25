@@ -8,8 +8,8 @@ import scala.collection.mutable.ListBuffer
 object ScalaCollection {
   def main(args: Array[String]): Unit = {
 //    arrayDemo()
-//    listDemo()
-    listBufferDemo()
+    listDemo()
+//    listBufferDemo()
 //    setDemo()
 //    tupleDemo()
 //    mapDemo()
@@ -31,9 +31,24 @@ object ScalaCollection {
    */
   def listDemo(): Unit ={
     println("------------開始 list 示範------------")
-    val numbers = List(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
+    val numbers = List(1, 2, 3, 4, 5, ",", 2, 3, 4, 5)
+    println(numbers.partition(s => s.equals(3)))
 
-    println(numbers(3))
+    println(numbers.slice(1,3))
+//    println(numbers(3))
+//
+//    val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
+//
+//    var position = numbers.indexOf(regexSpecialSymbol)
+//    println(position)
+//
+//    var (ys, zs) = numbers.splitAt(position)
+//    println(ys)
+//    println(zs)
+//
+//    zs = zs.drop(1)
+//    println(zs)
+
     println("------------結束 list 示範------------")
   }
 

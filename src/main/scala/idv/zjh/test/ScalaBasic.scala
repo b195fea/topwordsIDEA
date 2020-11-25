@@ -25,5 +25,6 @@ object ScalaBasic {
     println(siteAnswer) // 元素串接 List(Runoob, Google, Baidu, List(Runoob1, Google2, Baidu3))
     siteAnswer = site1 ++ site2
     println(siteAnswer) // 元素串接 List(Runoob, Google, Baidu, List(Runoob1, Google2, Baidu3))
+
   }
 }
