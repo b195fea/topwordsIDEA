@@ -1,8 +1,7 @@
-package idv.zjh.test
+package idv.zjh.topwords
 
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.SparkSession
-import idv.zjh.topwords.TopWORDS
 
 
 object RunTestTopWORDs {

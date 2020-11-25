@@ -17,7 +17,8 @@ class Preprocessing(private val textLenThld: Int) extends Serializable {
     * Preprocessing method of corpus
     *
     * @param corpus corpus
-    * @return preprocessed corpus
+    * @return preprocessed
+   *         corpus
     */
   def run(corpus: RDD[String]): RDD[String] = {
     // importing spark implicits

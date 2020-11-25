@@ -5,10 +5,72 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
+import scala.collection.mutable.ListBuffer
+
 object scalaTest {
-
-
   def main(args: Array[String]): Unit = {
+//    var ragex1 = "(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-\?=]*)*\/?"
+//    var ragex2 = "([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})"
+//    var ragex3 = "(\d+\w+)"
+//    var reagex4 = "(\d+)"
+
+
+//    (\d+)|(\w+)|(\pP|\pS|\s| )+|([\u4E00-\u9FFF]
+
+    var text = "https://www.youtube.com/watch?v=EABd74ruNQw羅莎莉亞OTZ很可愛ﾟдﾟb195fea@gmail.com，不知道是羅莎莉亞比較可愛aadd，，，還      是莉A1345B莉婭比ＳＳ較可愛123456個蘋ω果3/15ω"
+    val num = """(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-\?=]*)*\/?|([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|[\d|/|-]+|(\d+\w+)|(\d+)|(\w+)|(\pP|\pS|\s| )+|([\u4E00-\u9FFF]|\W+)""".r
+    val all = (num findAllIn text).toList
+    var listBuffer = new ListBuffer[String]()
+
+    var temp = new String()
+    all.foreach(text => {
+        temp = temp + text
+        if(text.equals("，")){
+          listBuffer += temp
+          temp = ""
+        }
+    })
+    listBuffer += temp
+    println(listBuffer)
+
+//    test()
+  }
+
+  def test(): Unit ={
+    val tauL = 30
+    val inputFile = "test_data/bh3_test2.txt"
+    // 取得 RDD
+    val coups = readFile(inputFile)
+    regexText(coups)
+    //val split = """([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|(\d+\w+)|(\d+)|(\w+)|([\u4E00-\u9FFF])""".r
+//    var words = coups.flatMap(S=>{
+//      (split findAllIn S).toList
+//    }).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+//
+//    println("---------------")
+//    words.foreach(S=>{
+//      println(S)
+//    })
+//
+//    coups.filter(_.length > 1).flatMap { text =>
+//      val permutations = ListBuffer[String]()
+//      for (i <- 1 to tauL) {// to 包含 tauL
+//        for (j <- 0 until text.length) {// until 不包含 text.length
+//          if (j + i <= text.length) {
+//            // 增加文字
+//            permutations += text.substring(j, j + i)
+//          }
+//        }
+//      }
+//      permutations
+//    }.foreach(S=>{
+//      println(S)
+//    })
+
+  }
+
+
+  def run(): Unit ={
 
     val inputFile = "test_data/bh3_test2.txt"
     // 取得 RDD
@@ -21,7 +83,6 @@ object scalaTest {
       println(text)
       println("-----------------------")
     })
-
   }
 
   /**
@@ -38,10 +99,10 @@ object scalaTest {
     }.filter(_.length > 1).flatMap { T =>
       //根据文本长度阈值分割文本
       // split text according to text length threshold
-      if (T.length > 10) {
+      if (T.length > textLenThld) {
         var splits = List[StringBuilder]() ::: List(new StringBuilder())
         T.foreach { c =>
-          if ((splits.last += c).length >= 10) {
+          if ((splits.last += c).length >= textLenThld) {
             splits = splits ::: List(new StringBuilder())
           }
         }
@@ -55,7 +116,7 @@ object scalaTest {
    *
    * @param corpus
    */
-  def test(corpus: RDD[String]): Unit ={
+  def regexText(corpus: RDD[String]): Unit ={
     println("進入 test")
     corpus.foreach(text => {
       println("---------------------------------")

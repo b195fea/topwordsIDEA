@@ -8,6 +8,9 @@ object ScalaBasic {
     demo1()
   }
 
+  /**
+   * 運算符
+   */
   def demo1(): Unit ={
     val site1: List[String] = List("Runoob", "Google", "Baidu")
     val site2: List[String] = List("Runoob1", "Google2", "Baidu3")
