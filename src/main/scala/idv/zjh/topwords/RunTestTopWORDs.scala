@@ -9,15 +9,15 @@ object RunTestTopWORDs {
     def main(args: Array[String]) : Unit = {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-    val inputFile = "test_data/bh3_test.txt"
-    val outputFile = "test_data/output/bh3_test"
+    val inputFile = "test_data/bh3_test2.txt"
+    val outputFile = "test_data/output/bh3_test2"
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
     val corpus = spark.sparkContext.textFile(inputFile)
 
     new TopWORDS(
-      tauL = 30,
+      tauL = 3000000,
       tauF = 3,
       textLenThld = 2000,
       useProbThld = 1E-8,

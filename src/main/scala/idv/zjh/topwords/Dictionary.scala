@@ -66,6 +66,9 @@ object Dictionary extends Serializable {
             tauL: Int,
             tauF: Int,
             useProbThld: Double): Dictionary = {
+
+
+
     //enumerate all the possible words: corpus -> words
     val words = corpus.flatMap { text =>
       val permutations = ListBuffer[String]()

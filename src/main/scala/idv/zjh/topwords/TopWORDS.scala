@@ -39,7 +39,7 @@ class TopWORDS(private val tauL: Int,
     // preprocess the input corpus 準備輸入語料庫
     val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // generate the overcomplete dictionary 產生過於龐大的字典
-    var dict = Dictionary(texts, tauL, tauF, useProbThld)
+    var dict = Dictionary(corpus, tauL, tauF, useProbThld)
     // initialize the loop variables 初始化迴圈變數
     var iter = 1
     var converged = false

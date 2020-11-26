@@ -16,7 +16,8 @@ case object TestTopWords {
   val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
   val regexChinese = "([\\u4E00-\\u9FFF])"
   val regexOtherSymbol = "(\\W)"
-
+  val regex = regexUrl + "|" + regexEmail + "|" + regexNumberSymbol + "|" + regexSpecialSymbol + "|" + regexChinese + "|" + regexOtherSymbol
+  val pattern = new Regex(regex)
   def main(args: Array[String]): Unit = {
     val regex = regexUrl + "|" + regexEmail + "|" + regexNumberSymbol + "|" + regexSpecialSymbol + "|" + regexChinese + "|" + regexOtherSymbol
     val pattern = new Regex(regex)
@@ -25,39 +26,35 @@ case object TestTopWords {
 
     val tauL = 30
 
-    coups.flatMap { T =>
-
-      // 使用标点和空格将段落分成几段文字
-      // split the paragraph into several texts using punctuations and spaces
-      var s  = T.split("[,|。|，|：|!|、|？|　]").map(_.trim)
-
-      s
-    }.map(text => {
-      println("Text:" + text)
-      // 將字串轉變成文字
-      (pattern findAllIn text).toList
-    }).flatMap(listString => {
-      val permutations = ListBuffer[String]()
-      for (wordLength <- 1 to tauL) {// to 包含 tauL
-        for (wordPosition <- 0 until listString.length) {// until 不包含 text.length
-          if (wordPosition + wordLength <= listString.length) {
-            var temp = ""
-            for (i <- 1 to wordLength){
-              temp += listString(wordPosition + i - 1)
+      coups.flatMap { T =>
+        // 使用标点和空格将段落分成几段文字
+        // split the paragraph into several texts using punctuations and spaces
+        var s  = T.split("[,|。|，|：|!|、|？|　]").map(_.trim)
+        s
+      }.map(text => {
+        println("Text:" + text)
+        // 將字串轉變成文字
+        (pattern findAllIn text).toList
+      }).flatMap(listString => {
+        val permutations = ListBuffer[String]()
+        for (wordLength <- 1 to tauL) {// to 包含 tauL
+          for (wordPosition <- 0 until listString.length) {// until 不包含 text.length
+            if (wordPosition + wordLength <= listString.length) {
+              var temp = ""
+              for (i <- 1 to wordLength){
+                temp += listString(wordPosition + i - 1)
+              }
+              permutations += temp
             }
-            permutations += temp
           }
         }
-      }
-      println("permutations:"+permutations)
-      permutations
+        println("permutations:"+permutations)
+        permutations
 
     }).map(_ -> 1).reduceByKey(_ + _).foreach(s => {
       println(s)
     })
   }
-
-
 
   /**
    * 讀取文字檔案 並回傳RDD
@@ -70,7 +67,4 @@ case object TestTopWords {
     corpus.cache()
     corpus
   }
-
-
-
 }
