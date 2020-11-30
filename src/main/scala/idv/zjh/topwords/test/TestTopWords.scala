@@ -24,7 +24,7 @@ case object TestTopWords {
     val inputFile = "test_data/bh3_test2.txt"
     val coups = readFile(inputFile)// 取得 RDD
 
-    val tauL = 30
+    val tauL = 15
 
       coups.flatMap { T =>
         // 使用标点和空格将段落分成几段文字
@@ -33,9 +33,10 @@ case object TestTopWords {
         s
       }.map(text => {
         println("Text:" + text)
-        // 將字串轉變成文字
+        // 將文字切成一個一個字元，並將網址、數字、英文等視為一個字元
         (pattern findAllIn text).toList
       }).flatMap(listString => {
+        // 依字元建立所有可能的組合（你很漂亮：[你]、[很]、[漂]、[亮]、[你很]、[很漂]、[漂亮]、[你很漂]、[很漂亮]、[你很漂亮]）
         val permutations = ListBuffer[String]()
         for (wordLength <- 1 to tauL) {// to 包含 tauL
           for (wordPosition <- 0 until listString.length) {// until 不包含 text.length
@@ -50,8 +51,9 @@ case object TestTopWords {
         }
         println("permutations:"+permutations)
         permutations
-
     }).map(_ -> 1).reduceByKey(_ + _).foreach(s => {
+      // .map(_ -> 1)         將所有組合字串設定值為1
+      // .reduceByKey(_ + _)  將所有key的值相加，記錄出現次數
       println(s)
     })
   }

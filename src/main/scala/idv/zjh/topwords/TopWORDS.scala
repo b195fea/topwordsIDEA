@@ -74,7 +74,7 @@ class TopWORDS(private val tauL: Int,
 
   /**
     * Update the dictionary in an iteration
-    *
+    * 在迭代中更新字典
     * @param texts corpus texts
     * @param dict  dictionary
     * @return (updated dictionary, text likelihoods)
@@ -82,10 +82,13 @@ class TopWORDS(private val tauL: Int,
   def updateDictionary(texts: RDD[String], dict: Dictionary): (Dictionary, Double) = {
     // importing spark implicits
     val spark = SparkSession.builder().getOrCreate()
+    // spark 運算的真正邏輯是使用Excutor 去運算的，當有共用參數時，使用廣播變量（broadcast）
     val dictBC = spark.sparkContext.broadcast(dict)
     // calculating the likelihoods (P(T|theta)) and expectations (niS and riS)
     val dpResult = texts.map { T =>
+      // 动态编程的可能性倒推
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
+      //关于预期的动态编程
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // extract the theta values
@@ -111,7 +114,7 @@ class TopWORDS(private val tauL: Int,
 
   /**
     * Dynamic programming on the expectations
-    *
+    * 关于预期的动态编程
     * @param T           text
     * @param dict        dictionary
     * @param likelihoods likelihoods of T_m (0 <= m <= |T|, T_[|T|] = 1.0)
@@ -144,7 +147,7 @@ class TopWORDS(private val tauL: Int,
 
   /**
     * Prune the dictionary with word use probability (theta) threshold
-    *
+    *用单词使用概率（θ）阈值修剪字典。
     * @param dict dictionary
     * @return pruned dictionary
     */
@@ -170,7 +173,7 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Posterior expectation segmentation
+    * Posterior expectation segmentation 后置期望分割
     *
     * @param texts texts to be segmented
     * @param dict  dictionary
@@ -196,7 +199,7 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods backwards
+    * Dynamic programming the likelihoods backwards 动态编程的可能性倒推
     *
     * @param T    text
     * @param dict dictionary
@@ -220,7 +223,7 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods forwards
+    * Dynamic programming the likelihoods forwards 动态编程的可能性前向
     *
     * @param T    text
     * @param dict dictionary

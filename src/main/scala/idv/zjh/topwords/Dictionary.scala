@@ -105,6 +105,6 @@ object Dictionary extends Serializable {
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-    new Dictionary(normalizedWords)
+    new Dictionary(、)
   }
 }
