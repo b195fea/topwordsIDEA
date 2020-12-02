@@ -46,7 +46,7 @@ class TopWORDS(private val tauL: Int,
     var lastLikelihood = -1.0
     // EM loop
     while (!converged && iter <= numIterations) {
-      // update and prune the dictionary 對字典進行縮減
+      // update and prune the dictionary 對字典進行縮減（）
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
       dict = pruneDictionary(updatedDict)
       // log info of the current iteration
@@ -122,9 +122,9 @@ class TopWORDS(private val tauL: Int,
     */
   def DPExpectations(T: String, dict: Dictionary, likelihoods: Array[BigDecimal]): (Map[String,
     Double], Map[String, Double]) = {
-    // expectations of word use frequency: n_i(T_[>=m])
+    // expectations of word use frequency: n_i(T_[>=m]) 期望文字使用頻率
     val niTs = new DPCache(tauL, { previous: Double => 1.0 + previous })
-    // expectations of word score: r_i(T_[>=m])
+    // expectations of word score: r_i(T_[>=m]) 期望文字使用分數
     val riTs = new DPCache(tauL, { previous: Double => 1.0 })
     // dynamic programming from text tail to head
     for (m <- T.length - 1 to 0 by -1) {
@@ -199,16 +199,19 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods backwards 动态编程的可能性倒推
+    * Dynamic programming the likelihoods backwards (應該是右資訊熵)
+    *  动态编程的可能性倒推
     *
-    * @param T    text
-    * @param dict dictionary
+    *
+    * @param T    text        （整段文字）
+    * @param dict dictionary  （字典）
     * @return likelihoods
     */
   def DPLikelihoodsBackward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // backward likelihoods: P(T_[>=m]|D,\theta)
-    val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
-    likelihoods(T.length) = BigDecimal(1.0)
+
+    val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))// 創建一個陣列，值全部設為 0
+    likelihoods(T.length) = BigDecimal(1.0)//整列最後一個值為1
     // dynamic programming from text tail to head
     for (m <- T.length - 1 to 0 by -1) {
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
@@ -223,7 +226,8 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods forwards 动态编程的可能性前向
+    * Dynamic programming the likelihoods forwards (應該是左資訊熵)
+    * 动态编程的可能性前向
     *
     * @param T    text
     * @param dict dictionary
@@ -236,6 +240,7 @@ class TopWORDS(private val tauL: Int,
     // dynamic programming from text head to tail
     for (m <- 1 to T.length) {
       val tLimit = if (m - tauL >= 0) tauL else m
+
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         val candidateWord = T.substring(m - t, m)
         if (dict.contains(candidateWord)) {

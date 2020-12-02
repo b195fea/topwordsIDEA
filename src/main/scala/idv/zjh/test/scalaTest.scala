@@ -9,69 +9,18 @@ import scala.collection.mutable.ListBuffer
 
 object scalaTest {
   def main(args: Array[String]): Unit = {
-//    var ragex1 = "(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-\?=]*)*\/?"
-//    var ragex2 = "([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})"
-//    var ragex3 = "(\d+\w+)"
-//    var reagex4 = "(\d+)"
-
-
-//    (\d+)|(\w+)|(\pP|\pS|\s| )+|([\u4E00-\u9FFF]
-
-    var text = "https://www.youtube.com/watch?v=EABd74ruNQw羅莎莉亞OTZ很可愛ﾟдﾟb195fea@gmail.com，不知道是羅莎莉亞比較可愛aadd，，，還      是莉A1345B莉婭比ＳＳ較可愛123456個蘋ω果3/15ω"
-    val num = """(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-\?=]*)*\/?|([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|[\d|/|-]+|(\d+\w+)|(\d+)|(\w+)|(\pP|\pS|\s| )+|([\u4E00-\u9FFF]|\W+)""".r
-    val all = (num findAllIn text).toList
-    var listBuffer = new ListBuffer[String]()
-
-    var temp = new String()
-    all.foreach(text => {
-        temp = temp + text
-        if(text.equals("，")){
-          listBuffer += temp
-          temp = ""
-        }
-    })
-    listBuffer += temp
-    println(listBuffer)
-
-//    test()
+    test()
   }
 
   def test(): Unit ={
-    val tauL = 30
-    val inputFile = "test_data/bh3_test2.txt"
-    // 取得 RDD
-    val coups = readFile(inputFile)
-    regexText(coups)
-    //val split = """([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|(\d+\w+)|(\d+)|(\w+)|([\u4E00-\u9FFF])""".r
-//    var words = coups.flatMap(S=>{
-//      (split findAllIn S).toList
-//    }).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
-//
-//    println("---------------")
-//    words.foreach(S=>{
-//      println(S)
-//    })
-//
-//    coups.filter(_.length > 1).flatMap { text =>
-//      val permutations = ListBuffer[String]()
-//      for (i <- 1 to tauL) {// to 包含 tauL
-//        for (j <- 0 until text.length) {// until 不包含 text.length
-//          if (j + i <= text.length) {
-//            // 增加文字
-//            permutations += text.substring(j, j + i)
-//          }
-//        }
-//      }
-//      permutations
-//    }.foreach(S=>{
-//      println(S)
-//    })
-
+    val likelihoods = Array.fill(10)(BigDecimal(0.0))
+    println(likelihoods.length)
   }
 
 
-  def run(): Unit ={
 
+
+  def run(): Unit ={
     val inputFile = "test_data/bh3_test2.txt"
     // 取得 RDD
     val coups = readFile(inputFile)
@@ -83,6 +32,23 @@ object scalaTest {
       println(text)
       println("-----------------------")
     })
+  }
+
+  def fold1(): Unit ={
+    val nums = List(1,2,3,4,5)
+    var initialValue:Int = 0;
+    var sum = nums.fold(initialValue){
+      (accumulator,currentElementBeingIterated) => accumulator + currentElementBeingIterated
+    }
+    println(sum) //prints 15 because 0+1+2+3+4+5 = 15
+  }
+
+  def fold2(): Unit ={
+    def sum(x: Int, y: Int) = x+ y
+    val nums = List(1, 2, 3, 4, 5)
+    var initialValue: Int = 0
+    val sum2 = nums.fold(initialValue)(sum)
+    println(sum2) // prints 15 because 0 + 1 + 2 + 3 + 4 + 5 = 15
   }
 
   /**
@@ -112,43 +78,6 @@ object scalaTest {
     }
   }
 
-  /**
-   *
-   * @param corpus
-   */
-  def regexText(corpus: RDD[String]): Unit ={
-    println("進入 test")
-    corpus.foreach(text => {
-      println("---------------------------------")
-      val num = """([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|(\d+\w+)|(\d+)|(\w+)|([\u4E00-\u9FFF])""".r
-      val all = (num findAllIn text).toList
-      println(all)
-      println("MIDDLE---------------------------------")
-
-      var seg = text.split("[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}|\\pP|\\pS|\\s|　")
-      for(i <- 0 to seg.length-1) {
-        println(seg(i))
-      }
-      println("---------------------------------")
-    })
-    //println(corpus)
-    println("離開 test")
-    "鍾嘉豪，TEST，這個世界真的非常美麗"
-//    val inputFile = "test_data/bh3_test.txt"
-//
-//    T.split("\\pP|\\pS|\\s|　").map(_.trim)
-//    val num1 = """([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})""".r
-//    var text = "鍾嘉豪 16541a123 你好 aa 55 b195fea@gmail.com".split("\\PP")
-//    for(i <- 0 to text.length-1) {
-//      println(text(i))
-//    }
-//
-//    val all1 = (num1 findAllIn "鍾嘉豪 16541a123 你好 aa 55 b195fea@gmail.com").toList
-//    println(all1)
-//    val num = """([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})|(\d+\w+)|(\d+)|(\w+)|([\u4E00-\u9FFF])""".r
-//    val all = (num findAllIn "鍾嘉豪 16541a123 ==\" 你好 aa 55 b195fea@gmail.com").toList
-//    println(all)
-  }
 
   /**
    * 讀取文字檔案
@@ -179,9 +108,5 @@ object scalaTest {
     for(i <- 0 to text.length-1) {
       println(text(i))
     }
-    //    var text2 = "a-b-c".split("-", 2)    //    println(text2)
-    //    for(i <- 0 to text2.length-1) {
-    //      println(text2(i))
-    //    }
   }
 }

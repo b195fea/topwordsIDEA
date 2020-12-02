@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   * Dictionary (initial state is overcomplete for EM)
   *
   * @param thetaS word use probability  文字使用評率
-  * @param phiS   word significance
+  * @param phiS   word significance     文字重要性
   */
 class Dictionary(val thetaS: Map[String, Double],
                  val phiS: List[(String, Double)] = Nil) extends Serializable {
@@ -105,6 +105,6 @@ object Dictionary extends Serializable {
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-    new Dictionary(、)
+    new Dictionary(normalizedWords)
   }
 }
