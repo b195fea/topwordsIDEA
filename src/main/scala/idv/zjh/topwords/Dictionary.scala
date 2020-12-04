@@ -89,22 +89,33 @@ object Dictionary extends Serializable {
 
     //filter words by the use probability threshold: words -> prunedWords
     val sumWordFreq = words.map(_._2).sum()
+    println("sumWordFreq:"+sumWordFreq)
     val prunedWords = words.map { case (word, freq) =>
       (word, freq, freq / sumWordFreq)
     }.filter { case (word, _, theta) =>
       // leave the single characters in dictionary for smoothing reason even if they have small theta
       word.length == 1 || theta >= useProbThld
     }
+    prunedWords.foreach((E1) => {
+      println("prunedWords:E1="+E1)
+    })
+
     words.unpersist()
     prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     //normalize the word use probability: prunedWords -> normalizedWords
-    // _._2 表示取 第二個 map值
+    // _._2 表示取 第二個 map值(字數加總)
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
+    println("sumPrunedWordFreq:"+sumPrunedWordFreq)
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
       word -> freq / sumPrunedWordFreq
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-    new Dictionary(normalizedWords)
+    println("normalizedWords:"+normalizedWords)
+    var d = new Dictionary(normalizedWords)
+
+    println("Dictionary:"+d)
+
+    d
   }
 }

@@ -5,7 +5,18 @@ package idv.zjh.test
  */
 object ScalaBasic {
   def main(args: Array[String]): Unit = {
-    demo1()
+    demo2()
+  }
+
+  def demo2(): Unit = {
+    // by 表示每一次 -2
+    for (m <- 10 to 0 by -2) {
+      println(m)
+    }
+    // 預設每一次 +1
+    for (m <- 0 to 10) {
+      println(m)
+    }
   }
 
   /**

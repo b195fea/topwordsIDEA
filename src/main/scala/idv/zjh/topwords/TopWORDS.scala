@@ -210,10 +210,14 @@ class TopWORDS(private val tauL: Int,
   def DPLikelihoodsBackward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // backward likelihoods: P(T_[>=m]|D,\theta)
 
-    val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))// 創建一個陣列，值全部設為 0
+    // 創建一個文本長度+1的陣列，字典的值全部設為 0，多出來的一個陣列內容設為1
+    val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
+    // 將最後一個值設為1
     likelihoods(T.length) = BigDecimal(1.0)//整列最後一個值為1
     // dynamic programming from text tail to head
+    // m 為當前的文本
     for (m <- T.length - 1 to 0 by -1) {
+      // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         val candidateWord = T.substring(m, m + t)
@@ -243,9 +247,15 @@ class TopWORDS(private val tauL: Int,
 
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         val candidateWord = T.substring(m - t, m)
+        println("candidateWord:["+candidateWord+"]")
         if (dict.contains(candidateWord)) {
+          println("dict.getTheta(candidateWord):["+dict.getTheta(candidateWord)+"]")
+          println("likelihoods(m - t):["+likelihoods(m - t)+"]")
           sum + dict.getTheta(candidateWord) * likelihoods(m - t)
-        } else sum
+        } else {
+          println("sum:["+sum+"]")
+          sum
+        }
       }
     }
     likelihoods

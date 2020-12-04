@@ -7,8 +7,14 @@ import scala.util.matching.Regex
 
 case object TestObject{
   def main(args: Array[String]): Unit = {
-    for (i <- 1 to 1){
-      print(i)
+    test1()
+  }
+
+  def test1(): Unit ={
+    var likehoods = Array.range(1,  10).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
+      println("Sum:[" + sum + "]," + "t:[" + t + "]")
+      sum
     }
+    println("likehoods:[" + likehoods + "],")
   }
 }
