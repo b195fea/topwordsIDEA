@@ -69,6 +69,7 @@ object Dictionary extends Serializable {
 
 
     //enumerate all the possible words: corpus -> words
+    // 將所有標記 map(_ -> 1)
     val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
@@ -88,8 +89,8 @@ object Dictionary extends Serializable {
 //      println("prunedWords:E1=" + E1)
 //    })
 
-    words.unpersist()
-    prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+    words.unpersist() // 抹除該標記，釋放緩存
+    prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)// 把超出記憶體的部分存在硬碟中，而不是每次重新計算
     //normalize the word use probability: prunedWords -> normalizedWords
     // _._2 表示取 第二個 map值(字數加總)
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()

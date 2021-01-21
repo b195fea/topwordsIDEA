@@ -54,13 +54,13 @@ class Dictionary(val thetaS: Map[String, Double],
 
 object Dictionary extends Serializable {
   /**
-    * Generate an overcomplete dictionary in the initial step
-    * Note: using the brute force strategy which however need to use the sequential Apriori strategy instead
+    * Generate an overcomplete dictionary in the initial step 產生一個過於龐大的詞典
+    * Note: using the brute force strategy which however need to use the sequential Apriori strategy instead 使用蛮力策略，但需要使用顺序Apriori策略来代替
     *
-    * @param corpus a set of texts
-    * @param tauL   threshold of word length
-    * @param tauF   threshold of word frequency
-    * @return an overcomplete dictionary
+    * @param corpus a set of texts                原始文本
+    * @param tauL   threshold of word length      詞彙長度
+    * @param tauF   threshold of word frequency   詞彙頻率
+    * @return an overcomplete dictionary          回傳過於龐大的此地那
     */
   def apply(corpus: RDD[String],
             tauL: Int,
@@ -81,14 +81,17 @@ object Dictionary extends Serializable {
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     //filter words by the use probability threshold: words -> prunedWords
     val sumWordFreq = words.map(_._2).sum()
+
+    // 將 words 資料存到  prunedWords
     val prunedWords = words.map { case (word, freq) =>
       (word, freq, freq / sumWordFreq)
     }.filter { case (word, _, theta) =>
       // leave the single characters in dictionary for smoothing reason even if they have small theta
       word.length == 1 || theta >= useProbThld
     }
-    words.unpersist()
-    prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+
+    words.unpersist() // 抹除該標記，釋放緩存
+    prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)// 把超出記憶體的部分存在硬碟中，而不是每次重新計算
     //normalize the word use probability: prunedWords -> normalizedWords
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
