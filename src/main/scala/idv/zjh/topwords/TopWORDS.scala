@@ -43,47 +43,46 @@ class TopWORDS(private val tauL: Int,
     // 取得分段文字
     val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
 
-    texts.foreach(text => println(text))
 
     // generate the overcomplete dictionary 產生過於龐大的字典
-    var dict = Dictionary(corpus, tauL, tauF, useProbThld)
-//    // initialize the loop variables 初始化迴圈變數
-//    var iter = 1
-//    var converged = false
-//    var lastLikelihood = -1.0
-//    // EM loop
-//    while (!converged && iter <= numIterations) {
+    var dict = Dictionary(texts, tauL, tauF, useProbThld)
+    // initialize the loop variables 初始化迴圈變數
+    var iter = 1
+    var converged = false
+    var lastLikelihood = -1.0
+    // EM loop
+    while (!converged && iter <= numIterations) {
 //      // update and prune the dictionary 對字典進行縮減（）
-//      val (updatedDict, likelihood) = updateDictionary(texts, dict)
-//      dict = pruneDictionary(updatedDict)
-//      // log info of the current iteration
-//      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-//      // test the convergence condition
-//      //
-//      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-//      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-//      LOGGER.info("(convergeTol)：" + (convergeTol))
-//
-//
-//      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
-//        converged = true
-//      }
-//      // prepare for the next iteration
-//      lastLikelihood = likelihood
-//      iter = iter + 1
-//    }
-//    // save the result dictionary
-//    dict.save(outputDictLoc)
-//    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-//    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
-//    texts.unpersist()
+      val (updatedDict, likelihood) = updateDictionary(texts, dict)
+      dict = pruneDictionary(updatedDict)
+      // log info of the current iteration
+      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      // test the convergence condition
+      //
+      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+      LOGGER.info("(convergeTol)：" + (convergeTol))
+
+
+      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
+        converged = true
+      }
+      // prepare for the next iteration
+      lastLikelihood = likelihood
+      iter = iter + 1
+    }
+    // save the result dictionary
+    dict.save(outputDictLoc)
+    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
+    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    texts.unpersist()
   }
 
   /**
    * Update the dictionary in an iteration
    * 在迭代中更新字典
    *
-   * @param texts corpus texts
+   * @param texts corpus texts      文句
    * @param dict  dictionary
    * @return (updated dictionary, text likelihoods)
    */
@@ -225,6 +224,8 @@ class TopWORDS(private val tauL: Int,
     likelihoods(T.length) = BigDecimal(1.0) //整列最後一個值為1
     // dynamic programming from text tail to head
     // m 為當前的文本
+
+
     for (m <- T.length - 1 to 0 by -1) {
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m

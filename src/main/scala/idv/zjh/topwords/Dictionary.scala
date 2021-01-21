@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 /**
  * Dictionary (initial state is overcomplete for EM)
  *
- * @param thetaS word use probability  文字使用評率
+ * @param thetaS word use probability  文字使用頻率
  * @param phiS   word significance     文字重要性
  */
 class Dictionary(val thetaS: Map[String, Double],
@@ -57,7 +57,7 @@ object Dictionary extends Serializable {
    * Generate an overcomplete dictionary in the initial step
    * Note: using the brute force strategy which however need to use the sequential Apriori strategy instead
    *
-   * @param corpus a set of texts               原始文檔
+   * @param corpus a set of texts               截成一段一段的文檔
    * @param tauL   threshold of word length     詞長度
    * @param tauF   threshold of word frequency  詞頻率
    * @return an overcomplete dictionary
@@ -71,17 +71,22 @@ object Dictionary extends Serializable {
     //enumerate all the possible words: corpus -> words
     // 將所有文字段落設為1 map(_ -> 1)
     // 將相同的文字相加 加總 .reduceByKey(_ + _)
-    // 過濾文字長度為1的文字,或者文字頻率大於1
+    // 保留文字長度不為1 以及出現頻率小於閾值的
     val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
 
 
+    words.foreach(
+      s => println("-------------------------" + s + "----------------------")
+    )
+
 
     //filter words by the use probability threshold: words -> prunedWords
+    // 計算所有次數總和
     val sumWordFreq = words.map(_._2).sum()
-    println("sumWordFreq:" + sumWordFreq)
+//    println("sumWordFreq:" + sumWordFreq)
     val prunedWords = words.map { case (word, freq) =>
       (word, freq, freq / sumWordFreq)
     }.filter { case (word, _, theta) =>
@@ -97,17 +102,17 @@ object Dictionary extends Serializable {
     //normalize the word use probability: prunedWords -> normalizedWords
     // _._2 表示取 第二個 map值(字數加總)
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
-    println("sumPrunedWordFreq:" + sumPrunedWordFreq)
+//    println("sumPrunedWordFreq:" + sumPrunedWordFreq)
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
       word -> freq / sumPrunedWordFreq
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-    println("normalizedWords:" + normalizedWords)
+//    println("normalizedWords:" + normalizedWords)
     var d = new Dictionary(normalizedWords)
-
-    println("Dictionary:" + d)
-
+//
+//    println("Dictionary:" + d)
+//
     d
   }
 }

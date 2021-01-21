@@ -19,7 +19,7 @@ object RunTestTopWORDs {
 
     new TopWORDS(
       tauL = 3000000,
-      tauF = 2,
+      tauF = 3,
       textLenThld = 2000,
       useProbThld = 1E-8,
       numIterations = 10,

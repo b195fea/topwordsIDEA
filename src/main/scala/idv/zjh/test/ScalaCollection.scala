@@ -32,6 +32,15 @@ object ScalaCollection {
   def listDemo(): Unit ={
     println("------------開始 list 示範------------")
     val numbers = List(1, 2, 3, 4, 5, ",", 2, 3, 4, 5)
+
+
+    var test = numbers.filter((num) => {
+      num == 1
+    })
+    println(test)
+
+    println( )
+
     println(numbers.partition(s => s.equals(3)))
 
     println(numbers.slice(1,3))
@@ -97,6 +106,8 @@ object ScalaCollection {
     val map1 = Map(1 -> 2)
     val map2 = Map("foo" -> "bar")
     val map3 = Map(1 -> 2,"foo" -> "bar")
+
+
     println(map1)
     println(map2)
     println(map3)
