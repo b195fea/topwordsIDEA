@@ -5,8 +5,8 @@ import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 
 /**
-  * Created by qfeng on 16-7-18.
-  */
+ * Created by qfeng on 16-7-18.
+ */
 object TopWORDSApp extends Serializable {
   @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
 

@@ -1,24 +1,25 @@
 package idv.zjh.topwords
+
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
 /**
-  * Created by qfeng on 16-7-6.
-  */
+ * Created by qfeng on 16-7-6.
+ */
 
 /**
-  * TopWORDS algorithm
-  *
-  * @param tauL             threshold of word length
-  * @param tauF             threshold of word frequency
-  * @param numIterations    number of iterations                          迭代次數
-  * @param convergeTol      convergence tolerance                   1E-3  收斂判斷
-  * @param textLenThld      preprocessing threshold of text length  2000  文本长度的预处理阈值
-  * @param useProbThld      prune threshold of word use probability 1E-8  修剪单词使用概率的阈值
-  * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to less than 0) 分词边界得分的分割阈值
-  */
+ * TopWORDS algorithm
+ *
+ * @param tauL             threshold of word length
+ * @param tauF             threshold of word frequency
+ * @param numIterations    number of iterations                          迭代次數
+ * @param convergeTol      convergence tolerance                   1E-3  收斂判斷
+ * @param textLenThld      preprocessing threshold of text length  2000  文本长度的预处理阈值
+ * @param useProbThld      prune threshold of word use probability 1E-8  修剪单词使用概率的阈值
+ * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to less than 0) 分词边界得分的分割阈值
+ */
 class TopWORDS(private val tauL: Int,
                private val tauF: Int,
                private val numIterations: Int,
@@ -28,57 +29,64 @@ class TopWORDS(private val tauL: Int,
                private val wordBoundaryThld: Double = 0.0
               ) extends Serializable {
   @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
+
   /**
-    * Run the TopWORDS algorithm
-    *
-    * @param corpus          training corpus                    訓練語料庫
-    * @param outputDictLoc   output dictionary location         輸出字典位置
-    * @param outputCorpusLoc output segmented corpus location   输出分割语料位置
-    */
+   * Run the TopWORDS algorithm
+   *
+   * @param corpus          training corpus                    訓練語料庫
+   * @param outputDictLoc   output dictionary location         輸出字典位置
+   * @param outputCorpusLoc output segmented corpus location   输出分割语料位置
+   */
   def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus 準備輸入語料庫
+
+    // 取得分段文字
     val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+
+    texts.foreach(text => println(text))
+
     // generate the overcomplete dictionary 產生過於龐大的字典
     var dict = Dictionary(corpus, tauL, tauF, useProbThld)
-    // initialize the loop variables 初始化迴圈變數
-    var iter = 1
-    var converged = false
-    var lastLikelihood = -1.0
-    // EM loop
-    while (!converged && iter <= numIterations) {
-      // update and prune the dictionary 對字典進行縮減（）
-      val (updatedDict, likelihood) = updateDictionary(texts, dict)
-      dict = pruneDictionary(updatedDict)
-      // log info of the current iteration
-      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-      // test the convergence condition
-      //
-      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-      LOGGER.info("(convergeTol)：" + (convergeTol))
-
-
-      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
-        converged = true
-      }
-      // prepare for the next iteration
-      lastLikelihood = likelihood
-      iter = iter + 1
-    }
-    // save the result dictionary
-    dict.save(outputDictLoc)
-    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
-    texts.unpersist()
+//    // initialize the loop variables 初始化迴圈變數
+//    var iter = 1
+//    var converged = false
+//    var lastLikelihood = -1.0
+//    // EM loop
+//    while (!converged && iter <= numIterations) {
+//      // update and prune the dictionary 對字典進行縮減（）
+//      val (updatedDict, likelihood) = updateDictionary(texts, dict)
+//      dict = pruneDictionary(updatedDict)
+//      // log info of the current iteration
+//      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+//      // test the convergence condition
+//      //
+//      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+//      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+//      LOGGER.info("(convergeTol)：" + (convergeTol))
+//
+//
+//      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
+//        converged = true
+//      }
+//      // prepare for the next iteration
+//      lastLikelihood = likelihood
+//      iter = iter + 1
+//    }
+//    // save the result dictionary
+//    dict.save(outputDictLoc)
+//    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
+//    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+//    texts.unpersist()
   }
 
   /**
-    * Update the dictionary in an iteration
-    * 在迭代中更新字典
-    * @param texts corpus texts
-    * @param dict  dictionary
-    * @return (updated dictionary, text likelihoods)
-    */
+   * Update the dictionary in an iteration
+   * 在迭代中更新字典
+   *
+   * @param texts corpus texts
+   * @param dict  dictionary
+   * @return (updated dictionary, text likelihoods)
+   */
   def updateDictionary(texts: RDD[String], dict: Dictionary): (Dictionary, Double) = {
     // importing spark implicits
     val spark = SparkSession.builder().getOrCreate()
@@ -113,13 +121,14 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming on the expectations
-    * 关于预期的动态编程
-    * @param T           text
-    * @param dict        dictionary
-    * @param likelihoods likelihoods of T_m (0 <= m <= |T|, T_[|T|] = 1.0)
-    * @return niTs and riTs
-    */
+   * Dynamic programming on the expectations
+   * 关于预期的动态编程
+   *
+   * @param T           text
+   * @param dict        dictionary
+   * @param likelihoods likelihoods of T_m (0 <= m <= |T|, T_[|T|] = 1.0)
+   * @return niTs and riTs
+   */
   def DPExpectations(T: String, dict: Dictionary, likelihoods: Array[BigDecimal]): (Map[String,
     Double], Map[String, Double]) = {
     // expectations of word use frequency: n_i(T_[>=m]) 期望文字使用頻率
@@ -146,11 +155,12 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Prune the dictionary with word use probability (theta) threshold
-    *用单词使用概率（θ）阈值修剪字典。
-    * @param dict dictionary
-    * @return pruned dictionary
-    */
+   * Prune the dictionary with word use probability (theta) threshold
+   * 用单词使用概率（θ）阈值修剪字典。
+   *
+   * @param dict dictionary
+   * @return pruned dictionary
+   */
   def pruneDictionary(dict: Dictionary): Dictionary = {
     // prune thetaS by use probability threshold
     val smoothMin = dict.thetaS.filter(_._2 > 0).values.min
@@ -173,12 +183,12 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Posterior expectation segmentation 后置期望分割
-    *
-    * @param texts texts to be segmented
-    * @param dict  dictionary
-    * @return the segmented texts
-    */
+   * Posterior expectation segmentation 后置期望分割
+   *
+   * @param texts texts to be segmented
+   * @param dict  dictionary
+   * @return the segmented texts
+   */
   def PESegment(texts: RDD[String], dict: Dictionary): RDD[String] = {
     texts.map { T =>
       // calculating the P(T|theta) forwards and backwards respectively
@@ -199,21 +209,20 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods backwards (應該是右資訊熵)
-    *  动态编程的可能性倒推
-    *
-    *
-    * @param T    text        （整段文字）
-    * @param dict dictionary  （字典）
-    * @return likelihoods
-    */
+   * Dynamic programming the likelihoods backwards (應該是右資訊熵)
+   * 动态编程的可能性倒推
+   *
+   * @param T    text        （整段文字）
+   * @param dict dictionary  （字典）
+   * @return likelihoods
+   */
   def DPLikelihoodsBackward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // backward likelihoods: P(T_[>=m]|D,\theta)
 
     // 創建一個文本長度+1的陣列，字典的值全部設為 0，多出來的一個陣列內容設為1
     val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
     // 將最後一個值設為1
-    likelihoods(T.length) = BigDecimal(1.0)//整列最後一個值為1
+    likelihoods(T.length) = BigDecimal(1.0) //整列最後一個值為1
     // dynamic programming from text tail to head
     // m 為當前的文本
     for (m <- T.length - 1 to 0 by -1) {
@@ -230,13 +239,13 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-    * Dynamic programming the likelihoods forwards (應該是左資訊熵)
-    * 动态编程的可能性前向
-    *
-    * @param T    text
-    * @param dict dictionary
-    * @return likelihoods
-    */
+   * Dynamic programming the likelihoods forwards (應該是左資訊熵)
+   * 动态编程的可能性前向
+   *
+   * @param T    text
+   * @param dict dictionary
+   * @return likelihoods
+   */
   def DPLikelihoodsForward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // forward likelihoods: P(T_[<=m]|D,\theta)
     val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
@@ -247,13 +256,13 @@ class TopWORDS(private val tauL: Int,
 
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         val candidateWord = T.substring(m - t, m)
-        println("candidateWord:["+candidateWord+"]")
+        println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
-          println("dict.getTheta(candidateWord):["+dict.getTheta(candidateWord)+"]")
-          println("likelihoods(m - t):["+likelihoods(m - t)+"]")
+          println("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
+          println("likelihoods(m - t):[" + likelihoods(m - t) + "]")
           sum + dict.getTheta(candidateWord) * likelihoods(m - t)
         } else {
-          println("sum:["+sum+"]")
+          println("sum:[" + sum + "]")
           sum
         }
       }

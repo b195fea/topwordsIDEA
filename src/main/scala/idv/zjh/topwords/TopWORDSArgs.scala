@@ -1,22 +1,22 @@
 package idv.zjh.topwords
 
 /**
-  * Created by qfeng on 16-7-18.
-  */
+ * Created by qfeng on 16-7-18.
+ */
 /**
-  * TopWORDS Application Arguments
-  *
-  * @param inputLoc         location of input corpus
-  * @param outputLoc        location of output dictionary and segmented corpus
-  * @param tauL             threshold of word length
-  * @param tauF             threshold of word frequency
-  * @param numIterations    number of iterations
-  * @param convergeTol      convergence tolerance
-  * @param textLenThld      preprocessing threshold of text length
-  * @param useProbThld      prune threshold of word use probability
-  * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to <= 0)
-  * @param numPartitions    number of partitions in yarn mode
-  */
+ * TopWORDS Application Arguments
+ *
+ * @param inputLoc         location of input corpus
+ * @param outputLoc        location of output dictionary and segmented corpus
+ * @param tauL             threshold of word length
+ * @param tauF             threshold of word frequency
+ * @param numIterations    number of iterations
+ * @param convergeTol      convergence tolerance
+ * @param textLenThld      preprocessing threshold of text length
+ * @param useProbThld      prune threshold of word use probability
+ * @param wordBoundaryThld segment threshold of word boundary score (use segment tree if set to <= 0)
+ * @param numPartitions    number of partitions in yarn mode
+ */
 case class TopWORDSArgs(inputLoc: String = "",
                         outputLoc: String = "",
                         tauL: Int = 10,
@@ -29,8 +29,8 @@ case class TopWORDSArgs(inputLoc: String = "",
                         numPartitions: Int = -1) extends Serializable
 
 /**
-  * TopWORDS Argument Parser
-  */
+ * TopWORDS Argument Parser
+ */
 object TopWORDSParser extends Serializable {
   val parser = new scopt.OptionParser[TopWORDSArgs]("TopWORDSArgs") {
     head("scopt", "3.x")

@@ -3,27 +3,27 @@ package idv.zjh.topwords
 import scala.collection.mutable
 
 /**
-  * Created by qfeng on 16-7-16.
-  */
+ * Created by qfeng on 16-7-16.
+ */
 /**
-  * (Simple) Text Segementor (文本分段器)
-  * the result segments may not be a word in dictionary（分段結果不可能是字典的單詞）
-  *
-  * @param T                text to be segmented
-  * @param boundaryScores   word boundary scores with regard to T's positions
-  * @param wordBoundaryThld word boundary threshold
-  * @param splitter         splitter (default is '|')
-  */
+ * (Simple) Text Segementor (文本分段器)
+ * the result segments may not be a word in dictionary（分段結果不可能是字典的單詞）
+ *
+ * @param T                text to be segmented
+ * @param boundaryScores   word boundary scores with regard to T's positions
+ * @param wordBoundaryThld word boundary threshold
+ * @param splitter         splitter (default is '|')
+ */
 class TextSegmentor(private val T: String,
                     private val boundaryScores: Array[Double],
                     private val wordBoundaryThld: Double,
                     private val splitter: Char = '|'
                    ) extends Serializable {
   /**
-    * Segment the text in positions whose boundary score greater than the threshold
-    *
-    * @return the split text
-    */
+   * Segment the text in positions whose boundary score greater than the threshold
+   *
+   * @return the split text
+   */
   def toText(): String = {
     // filter the split positions whose boundary score greater than the threshold
     val splitPositions = boundaryScores.zipWithIndex.flatMap { case (score, idx) =>
@@ -34,11 +34,11 @@ class TextSegmentor(private val T: String,
   }
 
   /**
-    * Inserting the splitter in the split positions
-    *
-    * @param splitPositions split positions
-    * @return text with the splitters in the split positions
-    */
+   * Inserting the splitter in the split positions
+   *
+   * @param splitPositions split positions
+   * @return text with the splitters in the split positions
+   */
   protected def segment(splitPositions: List[Int]): String = {
     // return text itself if it has only one character
     if (T.length <= 1 || splitPositions.length == 0) return T

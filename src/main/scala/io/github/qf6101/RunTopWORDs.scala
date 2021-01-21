@@ -10,14 +10,18 @@ object RunTopWORDs {
     def main(args: Array[String]) : Unit = {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-    val inputFile = "test_data/bh3_content.txt"
-    val outputFile = "test_data/bh3_content_output2"
+    val inputFile = "test_data/bh4.txt"
+    val outputFile = "test_data/bh4_output2"
 //    val inputFile = "test_data/story_of_stone.txt"
 //    val outputFile = "test_data/test_output"
     
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
     val corpus = spark.sparkContext.textFile(inputFile)
+    println("start 1")
+
+
+
     new TopWORDS(
       tauL = 10,
       tauF = 10,

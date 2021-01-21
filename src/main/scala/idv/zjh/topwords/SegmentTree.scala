@@ -1,20 +1,20 @@
 package idv.zjh.topwords
 
 /**
-  * Created by qfeng on 16-7-14.
-  */
+ * Created by qfeng on 16-7-14.
+ */
 
 /**
- * 	這個分段的結果必須是字典
-  * (Complete) Segment Tree
-  * the result segments must be a word in dictionary
-  *
-  * @param T              text to be segmented
-  * @param boundaryScores word boundary scores with regard to T's positions
-  * @param dict           dictionary
-  * @param tauL           threshold of word length
-  * @param splitter       splitter (default is '|')
-  */
+ * 這個分段的結果必須是字典
+ * (Complete) Segment Tree
+ * the result segments must be a word in dictionary
+ *
+ * @param T              text to be segmented
+ * @param boundaryScores word boundary scores with regard to T's positions
+ * @param dict           dictionary
+ * @param tauL           threshold of word length
+ * @param splitter       splitter (default is '|')
+ */
 class SegmentTree(private val T: String,
                   private val boundaryScores: Array[Double],
                   private val dict: Dictionary,
@@ -24,22 +24,22 @@ class SegmentTree(private val T: String,
   private val topNode = new SegTreeNode(0, T.length)
 
   /**
-   *  	以最大邊界分數遞歸地分割文本，直到結果斷是字典中的單詞
-    * Segment recursively the text in positions with the maximum boundary scores
-    * until the result segment is a word in dictionary
-    *
-    * @return the split text
-    */
+   * 以最大邊界分數遞歸地分割文本，直到結果斷是字典中的單詞
+   * Segment recursively the text in positions with the maximum boundary scores
+   * until the result segment is a word in dictionary
+   *
+   * @return the split text
+   */
   override def toText(): String = {
     segment(topNode.splitPositions)
   }
 
   /**
-    * Node of segment tree 分段樹的節點
-    *
-    * @param left  left child node
-    * @param right right child node
-    */
+   * Node of segment tree 分段樹的節點
+   *
+   * @param left  left child node
+   * @param right right child node
+   */
   private class SegTreeNode(private val left: Int,
                             private val right: Int) {
     // children nodes
@@ -63,11 +63,11 @@ class SegmentTree(private val T: String,
     }
 
     /**
-      * 	通過預遍歷遞歸獲取拆分位置
-      * Get recursively the split positions with the pre-order traversal
-      *
-      * @return
-      */
+     * 通過預遍歷遞歸獲取拆分位置
+     * Get recursively the split positions with the pre-order traversal
+     *
+     * @return
+     */
     def splitPositions: List[Int] = {
       val leftPositions = leftChild match {
         case Some(node) =>

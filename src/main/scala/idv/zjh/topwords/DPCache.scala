@@ -1,16 +1,16 @@
 package idv.zjh.topwords
 
 /**
-  * Created by qfeng on 16-7-11.
-  */
+ * Created by qfeng on 16-7-11.
+ */
 
 /**
- * 	用於存儲niTs（單詞使用概率）和riTs（單詞重要性因子）的動態編程緩存	
-  * Dynamic programming cache used to store the niTs (word use probabilities) and riTs (word significance factors)
-  *
-  * @param tauL          threshold of word length
-  * @param incrementProc process of incrementing the value from m to m+1 (different for niTs and riTs)
-  */
+ * 用於存儲niTs（單詞使用概率）和riTs（單詞重要性因子）的動態編程緩存
+ * Dynamic programming cache used to store the niTs (word use probabilities) and riTs (word significance factors)
+ *
+ * @param tauL          threshold of word length
+ * @param incrementProc process of incrementing the value from m to m+1 (different for niTs and riTs)
+ */
 class DPCache(private val tauL: Int,
               private val incrementProc: (Double) => Double
              ) extends Serializable {
@@ -18,11 +18,11 @@ class DPCache(private val tauL: Int,
   private val cache = scala.collection.mutable.Map[String, LimitStack]()
 
   /**
-    * Push the mth cuttings
-    *
-    * @param cuttings all possible cuttings for T_m with one word in head and rest in tail
-    * @return this
-    */
+   * Push the mth cuttings
+   *
+   * @param cuttings all possible cuttings for T_m with one word in head and rest in tail
+   * @return this
+   */
   def push(cuttings: Array[(String, Int, Double)]): this.type = {
     // add words to cache if they first appear in our view
     // this means their niT_[>m]S are zero
@@ -43,10 +43,10 @@ class DPCache(private val tauL: Int,
   }
 
   /**
-    * Get the top value in DP cache (we usually get the T_0's DP result)
-    *
-    * @return top value of DP cache
-    */
+   * Get the top value in DP cache (we usually get the T_0's DP result)
+   *
+   * @return top value of DP cache
+   */
   def top: Map[String, Double] = {
     cache.map { case (word, stack) =>
       word -> stack.top

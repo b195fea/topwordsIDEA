@@ -5,8 +5,9 @@ import org.apache.spark.sql.SparkSession
 
 
 object RunTestTopWORDs {
-    println("start ")
-    def main(args: Array[String]) : Unit = {
+  println("start ")
+
+  def main(args: Array[String]): Unit = {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
     val inputFile = "test_data/test4.txt"
@@ -18,7 +19,7 @@ object RunTestTopWORDs {
 
     new TopWORDS(
       tauL = 3000000,
-      tauF = 3,
+      tauF = 2,
       textLenThld = 2000,
       useProbThld = 1E-8,
       numIterations = 10,
@@ -27,6 +28,6 @@ object RunTestTopWORDs {
       .run(corpus, outputFile + "/dictionary", outputFile + "/segmented_texts")
 
 
-      println("End ")
+    println("End ")
   }
 }
