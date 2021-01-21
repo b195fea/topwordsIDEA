@@ -69,11 +69,14 @@ object Dictionary extends Serializable {
 
 
     //enumerate all the possible words: corpus -> words
-    // 將所有標記 map(_ -> 1)
+    // 將所有文字段落設為1 map(_ -> 1)
+    // 將相同的文字相加 加總 .reduceByKey(_ + _)
+    // 過濾文字長度為1的文字,或者文字頻率大於1
     val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+
 
 
     //filter words by the use probability threshold: words -> prunedWords
