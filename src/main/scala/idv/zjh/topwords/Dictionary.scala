@@ -71,7 +71,7 @@ object Dictionary extends Serializable {
     //enumerate all the possible words: corpus -> words
     // 將所有文字段落設為1 map(_ -> 1)
     // 將相同的文字相加 加總 .reduceByKey(_ + _)
-    // 保留文字長度不為1 以及出現頻率小於閾值的
+    // 保留文字長度為1 以及出現頻率大於閾值的
     val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
@@ -84,18 +84,15 @@ object Dictionary extends Serializable {
 
 
     //filter words by the use probability threshold: words -> prunedWords
-    // 計算所有次數總和
+    // 計算單字和大於頻率出現的次數總和
     val sumWordFreq = words.map(_._2).sum()
-//    println("sumWordFreq:" + sumWordFreq)
     val prunedWords = words.map { case (word, freq) =>
       (word, freq, freq / sumWordFreq)
     }.filter { case (word, _, theta) =>
       // leave the single characters in dictionary for smoothing reason even if they have small theta
+      // useProbThld 1E-8 (保留字為1 且頻率大於1E - 8 次方)
       word.length == 1 || theta >= useProbThld
     }
-//    prunedWords.foreach((E1) => {
-//      println("prunedWords:E1=" + E1)
-//    })
 
     words.unpersist() // 抹除該標記，釋放緩存
     prunedWords.persist(StorageLevel.MEMORY_AND_DISK_SER_2)// 把超出記憶體的部分存在硬碟中，而不是每次重新計算
