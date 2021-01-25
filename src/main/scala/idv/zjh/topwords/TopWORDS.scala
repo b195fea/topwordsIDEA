@@ -74,7 +74,7 @@ class TopWORDS(private val tauL: Int,
     // save the result dictionary
     dict.save(outputDictLoc)
     // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+//    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
     texts.unpersist()
   }
 
@@ -93,7 +93,7 @@ class TopWORDS(private val tauL: Int,
     val dictBC = spark.sparkContext.broadcast(dict)
     // calculating the likelihoods (P(T|theta)) and expectations (niS and riS)
     val dpResult = texts.map { T =>
-      // 动态编程的可能性倒推
+      // 动态编程的可能性倒推 backward likelihoods: P(T_[>=m]|D,\theta)
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
       //关于预期的动态编程
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
@@ -102,6 +102,7 @@ class TopWORDS(private val tauL: Int,
     val expectations = dpResult.map(_._2)
     val nis = expectations.flatMap(_._1).reduceByKey(_ + _)
     val niSum = nis.map(_._2).sum()
+
     val thetaS = nis.map { case (word, ni) =>
       word -> ni / niSum
     }.collectAsMap().toMap
@@ -208,8 +209,8 @@ class TopWORDS(private val tauL: Int,
   }
 
   /**
-   * Dynamic programming the likelihoods backwards (應該是右資訊熵)
-   * 动态编程的可能性倒推
+   * Dynamic programming the likelihoods backwards
+   * 計算T的最大概式估計值
    *
    * @param T    text        （整段文字）
    * @param dict dictionary  （字典）
@@ -217,17 +218,14 @@ class TopWORDS(private val tauL: Int,
    */
   def DPLikelihoodsBackward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // backward likelihoods: P(T_[>=m]|D,\theta)
-
     // 創建一個文本長度+1的陣列，字典的值全部設為 0，多出來的一個陣列內容設為1
     val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
     // 將最後一個值設為1
     likelihoods(T.length) = BigDecimal(1.0) //整列最後一個值為1
     // dynamic programming from text tail to head
-    // m 為當前的文本
-
-
+    // 從文字右邊算到左邊
     for (m <- T.length - 1 to 0 by -1) {
-      // tauL：文字最長為多少
+      // tauL：文字最長為多少(之前設為10)
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         val candidateWord = T.substring(m, m + t)
@@ -241,7 +239,7 @@ class TopWORDS(private val tauL: Int,
 
   /**
    * Dynamic programming the likelihoods forwards (應該是左資訊熵)
-   * 动态编程的可能性前向
+   * 动态規劃的MLE策略
    *
    * @param T    text
    * @param dict dictionary
