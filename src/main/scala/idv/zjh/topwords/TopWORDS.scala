@@ -249,7 +249,9 @@ class TopWORDS(private val tauL: Int,
    */
   def DPLikelihoodsForward(T: String, dict: Dictionary): Array[BigDecimal] = {
     // forward likelihoods: P(T_[<=m]|D,\theta)
+    // 將所有長度填入0
     val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
+    // 將第一個值設為1
     likelihoods(0) = BigDecimal(1.0)
     // dynamic programming from text head to tail
     for (m <- 1 to T.length) {
@@ -259,8 +261,8 @@ class TopWORDS(private val tauL: Int,
         val candidateWord = T.substring(m - t, m)
         println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
-          println("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
-          println("likelihoods(m - t):[" + likelihoods(m - t) + "]")
+//          println("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
+//          println("likelihoods(m - t):[" + likelihoods(m - t) + "]")
           sum + dict.getTheta(candidateWord) * likelihoods(m - t)
         } else {
           println("sum:[" + sum + "]")

@@ -69,22 +69,16 @@ object Dictionary extends Serializable {
 
 
     //enumerate all the possible words: corpus -> words
-    // 將所有文字段落設為1 map(_ -> 1)
-    // 將相同的文字相加 加總 .reduceByKey(_ + _)
-    // 保留文字長度為1 以及出現頻率大於閾值的
+    // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)
     val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
 
 
-    words.foreach(
-      s => println("-------------------------" + s + "----------------------")
-    )
-
 
     //filter words by the use probability threshold: words -> prunedWords
-    // 計算單字和大於頻率出現的次數總和
+    // 第二步驟：單字長度為1的詞，並計算出現頻率大於1E - 8 次方，視為單詞
     val sumWordFreq = words.map(_._2).sum()
     val prunedWords = words.map { case (word, freq) =>
       (word, freq, freq / sumWordFreq)
@@ -99,17 +93,14 @@ object Dictionary extends Serializable {
     //normalize the word use probability: prunedWords -> normalizedWords
     // _._2 表示取 第二個 map值(字數加總)
     val sumPrunedWordFreq = prunedWords.map(_._2).sum()
-//    println("sumPrunedWordFreq:" + sumPrunedWordFreq)
     val normalizedWords = prunedWords.map { case (word, freq, _) =>
       word -> freq / sumPrunedWordFreq
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-//    println("normalizedWords:" + normalizedWords)
+    println("normalizedWords:" + normalizedWords)
     var d = new Dictionary(normalizedWords)
-//
-//    println("Dictionary:" + d)
-//
+    println("Dictionary:" + d)
     d
   }
 }
