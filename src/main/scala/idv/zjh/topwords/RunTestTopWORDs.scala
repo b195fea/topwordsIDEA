@@ -11,7 +11,7 @@ object RunTestTopWORDs {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
     val inputFile = "test_data/test4.txt"
-    val outputFile = "test_data/output/test4"
+    val outputFile = "test_data/output2/test4"
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)

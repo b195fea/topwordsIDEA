@@ -20,15 +20,28 @@ case object TestObject{
 //    }
 //    println(sum) //prints 15 because 0+1+2+3+4+5 = 15
 
-    var likelihoods = Array(1, 2, 3, 4)
-    var sum = likelihoods.foldLeft(10) { case (left, right) =>
-      println("[left]:"+left+"[right]" + right)
-      left * right
+//    var likelihoods = Array(1, 2, 3, 4)
+//    var sum = likelihoods.foldLeft(10) { case (left, right) =>
+//      println("[left]:"+left+"[right]" + right)
+//      left * right
+//    }
+//    println("sum:"+sum)
+//    likelihoods.foreach(T =>{
+//      println(T)
+//    })
+
+
+    // tauL：文字最長為多少(之前設為10)
+    // 句子為20
+    // 如果句子小於
+    var T = "tauL：文字最長為多少(之前設為10)"
+    var tauL = 10
+    for (m <- T.length - 1 to 0 by -1) {
+      println("m:" + m)
+      val tLimit = if (m + tauL <= T.length) tauL else T.length - m
+      println(tLimit)
     }
-    println("sum:"+sum)
-    likelihoods.foreach(T =>{
-      println(T)
-    })
+
     //println("likelihoods:[" + likelihoods + "],")
 
 //    var likehoods = Array.range(1,  10).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
