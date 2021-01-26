@@ -62,15 +62,32 @@ object Dictionary extends Serializable {
    * @param tauF   threshold of word frequency  詞頻率
    * @return an overcomplete dictionary
    */
-  def apply(corpus: RDD[String],
+  def apply(corpus: RDD[List[String]],
             tauL: Int,
             tauF: Int,
-            useProbThld: Double): Dictionary = {
+            useProbThld: Double,
+            textLenThld: Int): Dictionary = {
 
 
-    //enumerate all the possible words: corpus -> words
-    // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)
-    val words = corpus.map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
+    val words = corpus.flatMap(listString => {
+          // 依字元建立所有可能的組合（你很漂亮：[你]、[很]、[漂]、[亮]、[你很]、[很漂]、[漂亮]、[你很漂]、[很漂亮]、[你很漂亮]）
+          val permutations = ListBuffer[String]()
+          for (wordLength <- 1 to textLenThld) { // to 包含 tauL
+            for (wordPosition <- 0 until listString.length) { // until 不包含 text.length
+              if (wordPosition + wordLength <= listString.length) {
+                var temp = ""
+                for (i <- 1 to wordLength) {
+                  temp += listString(wordPosition + i - 1)
+                }
+                permutations += temp
+              }
+            }
+          }
+          println("permutations:" + permutations)
+          permutations
+      //enumerate all the possible words: corpus -> words
+      // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)
+        }).map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
       word.length == 1 || freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
@@ -98,9 +115,9 @@ object Dictionary extends Serializable {
     }.collectAsMap().toMap
     prunedWords.unpersist()
     //return the overcomplete dictionary: normalizedWords -> dictionary
-    println("normalizedWords:" + normalizedWords)
+//    println("normalizedWords:" + normalizedWords)
     var d = new Dictionary(normalizedWords)
-    println("Dictionary:" + d)
+//    println("Dictionary:" + d)
     d
   }
 }

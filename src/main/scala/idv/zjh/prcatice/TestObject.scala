@@ -11,6 +11,8 @@ case object TestObject{
   }
 
   def test1(): Unit ={
+    var words = List("這", "是", "我", "的", "信", "箱","b195fea@gmail.com")
+
 //    val nums = List(1,2,3,4,5)
 //    var initialValue:Int = 0;
 //    var sum = nums.fold(initialValue){

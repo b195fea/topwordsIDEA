@@ -41,41 +41,39 @@ class TopWORDS(private val tauL: Int,
     // preprocess the input corpus 準備輸入語料庫
 
     // 取得分段文字
-    val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
-
-
+    val texts = new Preprocessing().run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // generate the overcomplete dictionary 產生過於龐大的字典
-    var dict = Dictionary(texts, tauL, tauF, useProbThld)
-    // initialize the loop variables 初始化迴圈變數
-    var iter = 1
-    var converged = false
-    var lastLikelihood = -1.0
-    // EM loop
-    while (!converged && iter <= numIterations) {
-//      // update and prune the dictionary 對字典進行縮減（）
-      val (updatedDict, likelihood) = updateDictionary(texts, dict)
-      dict = pruneDictionary(updatedDict)
-      // log info of the current iteration
-      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-      // test the convergence condition
-      //
-      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-      LOGGER.info("(convergeTol)：" + (convergeTol))
-
-
-      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
-        converged = true
-      }
-      // prepare for the next iteration
-      lastLikelihood = likelihood
-      iter = iter + 1
-    }
-    // save the result dictionary
-    dict.save(outputDictLoc)
-    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
-    texts.unpersist()
+    var dict = Dictionary(texts, tauL, tauF, useProbThld,textLenThld)
+//    // initialize the loop variables 初始化迴圈變數
+//    var iter = 1
+//    var converged = false
+//    var lastLikelihood = -1.0
+//    // EM loop
+//    while (!converged && iter <= numIterations) {
+////      // update and prune the dictionary 對字典進行縮減（）
+//      val (updatedDict, likelihood) = updateDictionary(texts, dict)
+//      dict = pruneDictionary(updatedDict)
+//      // log info of the current iteration
+//      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+//      // test the convergence condition
+//      //
+//      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+//      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+//      LOGGER.info("(convergeTol)：" + (convergeTol))
+//
+//
+//      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
+//        converged = true
+//      }
+//      // prepare for the next iteration
+//      lastLikelihood = likelihood
+//      iter = iter + 1
+//    }
+//    // save the result dictionary
+//    dict.save(outputDictLoc)
+//    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
+//    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+//    texts.unpersist()
   }
 
   /**
