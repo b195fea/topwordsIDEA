@@ -1,15 +1,35 @@
 package idv.zjh.demo
 
+
+
 import scala.util.matching.Regex
 
 /**
  * Scala 基礎語法示範
  */
 object ScalaRagex {
+  val regexUrl = "(https?://[\\w-\\.]+(:\\d+)?(\\/[~\\w\\/\\.]*)?(\\?\\S*)?(#\\S*)?)"
+  val regexEmail = "([a-zA-Z0-9._%-]+@([a-zA-Z0-9.-]+))"
+  val regexNumberSymbol = "([(\\w)(\\d)(/)(\\-)(\\.)]+)"
+  val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
+  val regexChinese = "([\\u4E00-\\u9FFF])"
+  val regexOtherSymbol = "(\\W)"
+  val regex = regexUrl + "|" + regexEmail + "|" + regexNumberSymbol + "|" + regexSpecialSymbol + "|" + regexChinese + "|" + regexOtherSymbol
+  val pattern = new Regex(regex)
+
+
   def main(args: Array[String]): Unit = {
-    checkSpecialSymbol()
-    checkChinese()
-    checkOtherSymbol()
+//    checkSpecialSymbol()
+//    checkChinese()
+//    checkOtherSymbol()
+    testMatches()
+
+
+  }
+
+  def testMatches():Unit={
+    val result = "TXEE022RDS鍾嘉豪35".matches(regex)
+    println(result)
   }
 
   /**

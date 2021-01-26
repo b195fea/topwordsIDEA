@@ -44,36 +44,36 @@ class TopWORDS(private val tauL: Int,
     val texts = new Preprocessing().run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // generate the overcomplete dictionary 產生過於龐大的字典
     var dict = Dictionary(texts, tauL, tauF, useProbThld,textLenThld)
-//    // initialize the loop variables 初始化迴圈變數
-//    var iter = 1
-//    var converged = false
-//    var lastLikelihood = -1.0
-//    // EM loop
-//    while (!converged && iter <= numIterations) {
-////      // update and prune the dictionary 對字典進行縮減（）
-//      val (updatedDict, likelihood) = updateDictionary(texts, dict)
-//      dict = pruneDictionary(updatedDict)
-//      // log info of the current iteration
-//      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-//      // test the convergence condition
-//      //
-//      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-//      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-//      LOGGER.info("(convergeTol)：" + (convergeTol))
-//
-//
-//      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
-//        converged = true
-//      }
-//      // prepare for the next iteration
-//      lastLikelihood = likelihood
-//      iter = iter + 1
-//    }
-//    // save the result dictionary
-//    dict.save(outputDictLoc)
-//    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
-//    PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
-//    texts.unpersist()
+    // initialize the loop variables 初始化迴圈變數
+    var iter = 1
+    var converged = false
+    var lastLikelihood = -1.0
+    // EM loop
+    while (!converged && iter <= numIterations) {
+//      // update and prune the dictionary 對字典進行縮減（）
+      val (updatedDict, likelihood) = updateDictionary(texts, dict)
+      dict = pruneDictionary(updatedDict)
+      // log info of the current iteration
+      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      // test the convergence condition
+      //
+      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+      LOGGER.info("(convergeTol)：" + (convergeTol))
+
+
+      if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
+        converged = true
+      }
+      // prepare for the next iteration
+      lastLikelihood = likelihood
+      iter = iter + 1
+    }
+    // save the result dictionary
+    dict.save(outputDictLoc)
+    // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
+    //PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    texts.unpersist()
   }
 
   /**
@@ -84,7 +84,7 @@ class TopWORDS(private val tauL: Int,
    * @param dict  dictionary
    * @return (updated dictionary, text likelihoods)
    */
-  def updateDictionary(texts: RDD[String], dict: Dictionary): (Dictionary, Double) = {
+  def updateDictionary(texts: RDD[List[String]], dict: Dictionary): (Dictionary, Double) = {
     // importing spark implicits
     val spark = SparkSession.builder().getOrCreate()
     // spark 運算的真正邏輯是使用Excutor 去運算的，當有共用參數時，使用廣播變量（broadcast）
@@ -126,7 +126,7 @@ class TopWORDS(private val tauL: Int,
    * @param likelihoods likelihoods of T_m (0 <= m <= |T|, T_[|T|] = 1.0)
    * @return niTs and riTs
    */
-  def DPExpectations(T: String, dict: Dictionary, likelihoods: Array[BigDecimal]): (Map[String,
+  def DPExpectations(T: List[String], dict: Dictionary, likelihoods: Array[BigDecimal]): (Map[String,
     Double], Map[String, Double]) = {
     // expectations of word use frequency: n_i(T_[>=m]) 期望文字使用頻率
     val niTs = new DPCache(tauL, { previous: Double => 1.0 + previous })
@@ -137,7 +137,7 @@ class TopWORDS(private val tauL: Int,
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       // get all possible cuttings for T_m with one word in head and rest in tail
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
-        val candidateWord = T.substring(m, m + t)
+        val candidateWord = getWord(T,m, m + t)
         if (dict.contains(candidateWord)) {
           val rho = BigDecimal(dict.getTheta(candidateWord)) * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
@@ -186,7 +186,7 @@ class TopWORDS(private val tauL: Int,
    * @param dict  dictionary
    * @return the segmented texts
    */
-  def PESegment(texts: RDD[String], dict: Dictionary): RDD[String] = {
+  def PESegment(texts: RDD[List[String]], dict: Dictionary): RDD[List[String]] = {
     texts.map { T =>
       // calculating the P(T|theta) forwards and backwards respectively
       val forwardLikelihoods = DPLikelihoodsForward(T, dict)
@@ -213,7 +213,7 @@ class TopWORDS(private val tauL: Int,
    * @param dict dictionary  （字典）
    * @return likelihoods
    */
-  def DPLikelihoodsBackward(T: String, dict: Dictionary): Array[BigDecimal] = {
+  def DPLikelihoodsBackward(T: List[String], dict: Dictionary): Array[BigDecimal] = {
     // backward likelihoods: P(T_[>=m]|D,\theta)
 
     // 創建一個文本長度+1的陣列，字典的值全部設為 0，多出來的一個陣列內容設為1
@@ -228,7 +228,7 @@ class TopWORDS(private val tauL: Int,
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-        val candidateWord = T.substring(m, m + t)
+        val candidateWord = getWord(T,m, m + t)
         if (dict.contains(candidateWord)) {
           sum + dict.getTheta(candidateWord) * likelihoods(m + t)
         } else sum
@@ -245,7 +245,7 @@ class TopWORDS(private val tauL: Int,
    * @param dict dictionary
    * @return likelihoods
    */
-  def DPLikelihoodsForward(T: String, dict: Dictionary): Array[BigDecimal] = {
+  def DPLikelihoodsForward(T: List[String], dict: Dictionary): Array[BigDecimal] = {
     // forward likelihoods: P(T_[<=m]|D,\theta)
     // 將所有長度填入0
     val likelihoods = Array.fill(T.length + 1)(BigDecimal(0.0))
@@ -256,7 +256,7 @@ class TopWORDS(private val tauL: Int,
       val tLimit = if (m - tauL >= 0) tauL else m
 
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-        val candidateWord = T.substring(m - t, m)
+        val candidateWord = getWord(T,m, m + t)
         println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
 //          println("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
@@ -270,4 +270,14 @@ class TopWORDS(private val tauL: Int,
     }
     likelihoods
   }
+
+  def getWord(listString:List[String] ,begin:Int ,end:Int ): String = {
+    var maxLength = listString.length
+    var result = ""
+    for( position <- begin until end){
+      result = result + listString(position)
+    }
+    result
+  }
+
 }

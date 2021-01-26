@@ -14,17 +14,17 @@ import scala.collection.mutable
  * @param wordBoundaryThld word boundary threshold
  * @param splitter         splitter (default is '|')
  */
-class TextSegmentor(private val T: String,
+class TextSegmentor(private val T: List[String],
                     private val boundaryScores: Array[Double],
                     private val wordBoundaryThld: Double,
-                    private val splitter: Char = '|'
+                    private val splitter: String = "|"
                    ) extends Serializable {
   /**
    * Segment the text in positions whose boundary score greater than the threshold
    *
    * @return the split text
    */
-  def toText(): String = {
+  def toText(): List[String] = {
     // filter the split positions whose boundary score greater than the threshold
     val splitPositions = boundaryScores.zipWithIndex.flatMap { case (score, idx) =>
       if (score >= wordBoundaryThld) List(idx + 1) else Nil
@@ -39,20 +39,21 @@ class TextSegmentor(private val T: String,
    * @param splitPositions split positions
    * @return text with the splitters in the split positions
    */
-  protected def segment(splitPositions: List[Int]): String = {
+  protected def segment(splitPositions: List[Int]): List[String] = {
     // return text itself if it has only one character
     if (T.length <= 1 || splitPositions.length == 0) return T
     // copy the characters one by one plus the splitters in the boundary positions
     val splitPosStack = mutable.Stack().pushAll(splitPositions.reverse)
     var currSplitPos = splitPosStack.pop() - 1
-    val splitResult = new StringBuilder()
+
+    var splitResult:List[String] = List()
     T.zipWithIndex.foreach { case (c, idx) =>
-      splitResult += c
+      splitResult = splitResult :+ c
       if (idx == currSplitPos) {
-        splitResult += splitter
+        splitResult = splitResult :+ splitter
         currSplitPos = if (splitPosStack.nonEmpty) splitPosStack.pop() - 1 else -1
       }
     }
-    splitResult.toString()
+    splitResult
   }
 }

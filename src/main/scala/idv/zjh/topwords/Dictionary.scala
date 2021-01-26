@@ -5,6 +5,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable.ListBuffer
+import scala.util.matching.Regex
 
 /**
  * Created by qfeng on 16-6-30.
@@ -53,6 +54,17 @@ class Dictionary(val thetaS: Map[String, Double],
 }
 
 object Dictionary extends Serializable {
+
+  val regexUrl = "(https?://[\\w-\\.]+(:\\d+)?(\\/[~\\w\\/\\.]*)?(\\?\\S*)?(#\\S*)?)"
+  val regexEmail = "([a-zA-Z0-9._%-]+@([a-zA-Z0-9.-]+))"
+  val regexNumberSymbol = "([(\\w)(\\d)(/)(\\-)(\\.)]+)"
+  val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
+  val regexChinese = "([\\u4E00-\\u9FFF])"
+  val regexOtherSymbol = "(\\W)"
+  val regex = regexUrl + "|" + regexEmail + "|" + regexNumberSymbol + "|" + regexSpecialSymbol + "|" + regexChinese + "|" + regexOtherSymbol
+  val pattern = new Regex(regex)
+
+
   /**
    * Generate an overcomplete dictionary in the initial step
    * Note: using the brute force strategy which however need to use the sequential Apriori strategy instead
@@ -89,7 +101,11 @@ object Dictionary extends Serializable {
       // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)
         }).map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
-      word.length == 1 || freq >= tauF
+      println("word:"+ word)
+      // 1.單字加入字典
+      // 2.符合正規表示法，如連續數字、日期、網址、英文、連續特殊符號
+      // 3.
+      word.length == 1 || word.matches(regex) ||freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
 
 

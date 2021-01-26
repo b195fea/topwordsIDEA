@@ -15,7 +15,7 @@ package idv.zjh.topwords
  * @param tauL           threshold of word length
  * @param splitter       splitter (default is '|')
  */
-class SegmentTree(private val T: String,
+class SegmentTree(private val T: List[String],
                   private val boundaryScores: Array[Double],
                   private val dict: Dictionary,
                   private val tauL: Int,
@@ -30,7 +30,7 @@ class SegmentTree(private val T: String,
    *
    * @return the split text
    */
-  override def toText(): String = {
+  override def toText(): List[String] = {
     segment(topNode.splitPositions)
   }
 
@@ -48,7 +48,7 @@ class SegmentTree(private val T: String,
     // split position
     private var splitPos: Int = -1
     // split T[left, right) as regard to maximum boundary score
-    if (right - left > tauL || (right - left <= tauL && !dict.contains(T.substring(left, right)))) {
+    if (right - left > tauL || (right - left <= tauL && !dict.contains(getWord(T,left, right)))) {
       // search split position
       var max = Double.MinValue
       for (i <- left + 1 until right) {
@@ -83,6 +83,16 @@ class SegmentTree(private val T: String,
       }
       leftPositions ::: (if (splitPos < 0) Nil else List(splitPos)) ::: rightPositions
     }
+  }
+
+
+  def getWord(listString:List[String] ,begin:Int ,end:Int ): String = {
+    var maxLength = listString.length
+    var result = ""
+    for( position <- begin until end){
+      result = result + listString(position)
+    }
+    result
   }
 
 }
