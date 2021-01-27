@@ -12,9 +12,9 @@ object RunTestTopWORDs {
     // setup spark session
     println("開始運行")
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-    val fileName = "test4"
+    val fileName = "bh3_content"
     val inputFile = "test_data/"+ fileName +".txt"
-    val outputFile = "test_data/output/" + fileName
+    val outputFile = "test_data/output2/" + fileName
 
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
@@ -24,7 +24,7 @@ object RunTestTopWORDs {
     println("讀取檔案結束")
 
     new TopWORDS(
-      tauL = 200000,
+      tauL = 1000,
       tauF = 3,
       textLenThld = 2000,
       useProbThld = 1E-8,

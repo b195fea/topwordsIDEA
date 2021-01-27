@@ -10,8 +10,10 @@ object RunTopWORDs {
   def main(args: Array[String]): Unit = {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
-    val inputFile = "test_data/test4.txt"
-    val outputFile = "test_data/output/test4"
+
+    val fileName = "bh3_content"
+    val inputFile = "test_data/"+ fileName +".txt"
+    val outputFile = "test_data/output2/" + fileName
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)

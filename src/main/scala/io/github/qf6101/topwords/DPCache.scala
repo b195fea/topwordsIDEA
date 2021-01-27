@@ -27,7 +27,7 @@ class DPCache(private val tauL: Int,
     // this means their niT_[>m]S are zero
     cuttings.foreach { case (candidateWord, _, _) =>
       // add word and initialize its niT_[>m]S to zero
-      if (!cache.contains(candidateWord)) cache += candidateWord -> new LimitStack(tauL, 0.0)
+      if (!cache.contains(candidateWord)) cache += candidateWord -> new LimitStack(tauL, 0.0)//發生錯誤
     }
     // push niT_m
     cache.foreach { case (word, stack) =>

@@ -143,16 +143,21 @@ class TopWORDS(private val tauL: Int,
       // get all possible cuttings for T_m with one word in head and rest in tail
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
         val candidateWord = getWord(T,m, m + t)
-        println("candidateWord:"+candidateWord)
+//        println("candidateWord:"+candidateWord)
         if (dict.contains(candidateWord)) {
           println("likelihoods(m)：" + likelihoods(m))
           val rho = BigDecimal(dict.getTheta(candidateWord)) * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
       }
+
+      cuttings.foreach( cut =>{
+        println("cut:"+cut)
+      })
+
       // push cuttings to DP caches
       niTs.push(cuttings)
-      riTs.push(cuttings)
+      riTs.push(cuttings)//發生錯誤
     }
     // return T's niS and riS
     (niTs.top, riTs.top)
@@ -233,14 +238,14 @@ class TopWORDS(private val tauL: Int,
     for (m <- T.length - 1 to 0 by -1) {
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
-      println("tLimit:"+tLimit)
+//      println("tLimit:"+tLimit)
       var arrayRange = Array.range(1, tLimit + 1)
-      println("arrayRange:"+arrayRange.length)
+//      println("arrayRange:"+arrayRange.length)
       likelihoods(m) = arrayRange.foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-        println("T:"+T)
-        println("sum:"+sum)
-        println("m:"+m)
-        println("t:"+t)
+//        println("T:"+T)
+//        println("sum:"+sum)
+//        println("m:"+m)
+//        println("t:"+t)
         val candidateWord = getWord(T,m, m+t)
         println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
