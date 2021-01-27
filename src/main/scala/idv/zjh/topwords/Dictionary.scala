@@ -80,7 +80,7 @@ object Dictionary extends Serializable {
             useProbThld: Double,
             textLenThld: Int): Dictionary = {
 
-
+    var iter = 0
     val words = corpus.flatMap(listString => {
           // 依字元建立所有可能的組合（你很漂亮：[你]、[很]、[漂]、[亮]、[你很]、[很漂]、[漂亮]、[你很漂]、[很漂亮]、[你很漂亮]）
           val permutations = ListBuffer[String]()
@@ -95,13 +95,15 @@ object Dictionary extends Serializable {
               }
             }
           }
-          println("permutations:" + permutations)
+          iter = iter + 1
+          println("permutations:" + iter)
+//          println("permutations:" + permutations)
           permutations
       //enumerate all the possible words: corpus -> words
       // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)
         }).map(_ -> 1).reduceByKey(_ + _).filter { case (word, freq) =>
       // leave the single characters in dictionary for smoothing reason even if they are low frequency
-      println("word:"+ word)
+//      println("word:"+ word)
       // 1.單字加入字典
       // 2.符合正規表示法，如連續數字、日期、網址、英文、連續特殊符號
       // 3.
@@ -133,7 +135,7 @@ object Dictionary extends Serializable {
     //return the overcomplete dictionary: normalizedWords -> dictionary
 //    println("normalizedWords:" + normalizedWords)
     var d = new Dictionary(normalizedWords)
-//    println("Dictionary:" + d)
+    println("Dictionary:" + d)
     d
   }
 }

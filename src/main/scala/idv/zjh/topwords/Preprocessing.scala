@@ -44,20 +44,18 @@ class Preprocessing() extends Serializable {
     var rtnRdd = corpus.flatMap { T =>
       // 使用标点和空格将段落分成几段文字
       // split the paragraph into several texts using punctuations and spaces
-      var s = T.split("[,|。|，|：|!|、|？|　]").map(_.trim)
-      s
+      T.split("[,|。|，|：|!|、|？|　| | ]").map(_.trim).filter(s =>{
+        s.length > 0
+      })
     }.map(text => {
-      println("Text:" + text)
       // 將文字切成一個一個字元，並將網址、數字、英文等視為一個字元
       (pattern findAllIn text).toList
     })
 
-
-    rtnRdd
-
-    rtnRdd.foreach(T => {
-      println(T)
-    })
+    println("rtnRdd:" + rtnRdd.count())
+//    rtnRdd.foreach(T => {
+//      println(T)
+//    })
     rtnRdd
   }
 }

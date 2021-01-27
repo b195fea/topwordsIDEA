@@ -39,11 +39,13 @@ class TopWORDS(private val tauL: Int,
    */
   def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus 準備輸入語料庫
-
+    println("開始運行")
     // 取得分段文字
     val texts = new Preprocessing().run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+    println("取得分段文字")
     // generate the overcomplete dictionary 產生過於龐大的字典
     var dict = Dictionary(texts, tauL, tauF, useProbThld,textLenThld)
+    println("取得過於龐大的字典")
     // initialize the loop variables 初始化迴圈變數
     var iter = 1
     var converged = false
@@ -51,16 +53,17 @@ class TopWORDS(private val tauL: Int,
     // EM loop
     while (!converged && iter <= numIterations) {
 //      // update and prune the dictionary 對字典進行縮減（）
+      println("修改字典開始：updateDictionary")
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
+      println("修改字典結束：updateDictionary")
+      println("修改字典開始：pruneDictionary")
       dict = pruneDictionary(updatedDict)
+      println("修改字典結束：pruneDictionary")
       // log info of the current iteration
-      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-      // test the convergence condition
-      //
-      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-      LOGGER.info("(convergeTol)：" + (convergeTol))
-
+      println("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      println("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+      println("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+      println("(convergeTol)：" + (convergeTol))
 
       if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
         converged = true
@@ -71,8 +74,10 @@ class TopWORDS(private val tauL: Int,
     }
     // save the result dictionary
     dict.save(outputDictLoc)
+    println("dict.save OK")
     // segment the corpus and save the segmented corpus (at most 10,000 texts per partition)
     //PESegment(texts, dict).repartition(((texts.count() / 10000) + 1).toInt).saveAsTextFile(outputCorpusLoc)
+    println("PESegment OK")
     texts.unpersist()
   }
 
@@ -138,7 +143,9 @@ class TopWORDS(private val tauL: Int,
       // get all possible cuttings for T_m with one word in head and rest in tail
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
         val candidateWord = getWord(T,m, m + t)
+        println("candidateWord:"+candidateWord)
         if (dict.contains(candidateWord)) {
+          println("likelihoods(m)：" + likelihoods(m))
           val rho = BigDecimal(dict.getTheta(candidateWord)) * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
@@ -223,12 +230,19 @@ class TopWORDS(private val tauL: Int,
     // dynamic programming from text tail to head
     // m 為當前的文本
 
-
     for (m <- T.length - 1 to 0 by -1) {
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
-      likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-        val candidateWord = getWord(T,m, m + t)
+      println("tLimit:"+tLimit)
+      var arrayRange = Array.range(1, tLimit + 1)
+      println("arrayRange:"+arrayRange.length)
+      likelihoods(m) = arrayRange.foldLeft(BigDecimal(0.0)) { case (sum, t) =>
+        println("T:"+T)
+        println("sum:"+sum)
+        println("m:"+m)
+        println("t:"+t)
+        val candidateWord = getWord(T,m, m+t)
+        println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
           sum + dict.getTheta(candidateWord) * likelihoods(m + t)
         } else sum
@@ -255,7 +269,9 @@ class TopWORDS(private val tauL: Int,
     for (m <- 1 to T.length) {
       val tLimit = if (m - tauL >= 0) tauL else m
 
+
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
+
         val candidateWord = getWord(T,m, m + t)
         println("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
@@ -272,10 +288,21 @@ class TopWORDS(private val tauL: Int,
   }
 
   def getWord(listString:List[String] ,begin:Int ,end:Int ): String = {
-    var maxLength = listString.length
     var result = ""
-    for( position <- begin until end){
-      result = result + listString(position)
+    try{
+
+      var maxLength = listString.length
+      for( position <- begin until end){
+        result = result + listString(position)
+      }
+
+    }catch{
+      case e: IndexOutOfBoundsException => {
+        println("listString:"+ listString)
+        println("begin:"+ begin)
+        println("end:"+ end)
+        throw new IndexOutOfBoundsException("You are not eligible")
+      }
     }
     result
   }

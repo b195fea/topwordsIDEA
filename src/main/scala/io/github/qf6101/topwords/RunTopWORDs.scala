@@ -18,7 +18,7 @@ object RunTopWORDs {
     val corpus = spark.sparkContext.textFile(inputFile)
 
     new TopWORDS(
-      tauL = 3000000,
+      tauL = 1000,
       tauF = 3,
       textLenThld = 2000,
       useProbThld = 1E-8,

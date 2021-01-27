@@ -31,19 +31,20 @@ object ScalaCollection {
    */
   def listDemo(): Unit ={
     println("------------開始 list 示範------------")
-    val numbers = List(1, 2, 3, 4, 5, ",", 2, 3, 4, 5)
+    val numbers = List(1, 2, 3, 4, 555416541, ",", 2, 3, 4, "156416514")
+    println(numbers.length)
 
 
-    var test = numbers.filter((num) => {
-      num == 1
-    })
-    println(test)
+//    var test = numbers.filter((num) => {
+//      num == 1
+//    })
+//    println(test)
+//
+//    println( )
 
-    println( )
-
-    println(numbers.partition(s => s.equals(3)))
-
-    println(numbers.slice(1,3))
+//    println(numbers.partition(s => s.equals(3)))
+//
+//    println(numbers.slice(1,3))
 //    println(numbers(3))
 //
 //    val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
