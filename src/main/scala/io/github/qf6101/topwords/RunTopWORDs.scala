@@ -13,7 +13,7 @@ object RunTopWORDs {
 
     val fileName = "bh3_content"
     val inputFile = "test_data/"+ fileName +".txt"
-    val outputFile = "test_data/output2/" + fileName
+    val outputFile = "test_data/output_origin/" + fileName
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)

@@ -1,5 +1,7 @@
 package idv.zjh.topwords
 
+
+import org.apache.log4j.Logger
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -19,6 +21,7 @@ import scala.util.matching.Regex
  */
 class Dictionary(val thetaS: Map[String, Double],
                  val phiS: List[(String, Double)] = Nil) extends Serializable {
+
   /**
    * Query certain word's theta
    *
@@ -51,10 +54,21 @@ class Dictionary(val thetaS: Map[String, Double],
     // saving phi values
     if (phiS != Nil) sc.parallelize(phiS).repartition(1).saveAsTextFile(dictFile + "/phiS")
   }
+
+  /**
+   * Save the dictionary to file
+   *
+   * @param dictFile saving destination
+   */
+  def tempSave(dictFile: String,iterable:Int): Unit = {
+    val sc = SparkContext.getOrCreate()
+    // saving theta values
+    sc.parallelize(thetaS.toList.sortBy(_._2).reverse).repartition(1).saveAsTextFile(dictFile + "/temp_thetaS"+iterable)
+  }
 }
 
 object Dictionary extends Serializable {
-
+  @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
   val regexUrl = "(https?://[\\w-\\.]+(:\\d+)?(\\/[~\\w\\/\\.]*)?(\\?\\S*)?(#\\S*)?)"
   val regexEmail = "([a-zA-Z0-9._%-]+@([a-zA-Z0-9.-]+))"
   val regexNumberSymbol = "([(\\w)(\\d)(/)(\\-)(\\.)]+)"
@@ -96,8 +110,7 @@ object Dictionary extends Serializable {
             }
           }
           iter = iter + 1
-          println("permutations:" + iter)
-//          println("permutations:" + permutations)
+          LOGGER.info("permutations:" + permutations)
           permutations
       //enumerate all the possible words: corpus -> words
       // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)

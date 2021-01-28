@@ -10,18 +10,18 @@ object RunTestTopWORDs {
 
   def main(args: Array[String]): Unit = {
     // setup spark session
-    println("開始運行")
+    LOGGER.info("開始運行")
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
+//    val fileName = "test1"
     val fileName = "bh3_content"
     val inputFile = "test_data/"+ fileName +".txt"
-    val outputFile = "test_data/output2/" + fileName
-
+    val outputFile = "test_data/output_update/" + fileName
 
     val files = FileSystem.get(spark.sparkContext.hadoopConfiguration)
     if (files.exists(new Path(outputFile))) files.delete(new Path(outputFile), true)
-    println("讀取檔案開始")
+    LOGGER.info("讀取檔案開始")
     val corpus = spark.sparkContext.textFile(inputFile)
-    println("讀取檔案結束")
+    LOGGER.info("讀取檔案結束")
 
     new TopWORDS(
       tauL = 1000,
@@ -32,7 +32,6 @@ object RunTestTopWORDs {
       convergeTol = 1E-3,
       wordBoundaryThld = 0.0)
       .run(corpus, outputFile + "/dictionary", outputFile + "/segmented_texts")
-
 
     println("End ")
   }
