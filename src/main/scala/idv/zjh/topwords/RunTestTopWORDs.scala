@@ -13,7 +13,7 @@ object RunTestTopWORDs {
     LOGGER.info("開始運行")
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
 //    val fileName = "test1"
-    val fileName = "bh3_content"
+    val fileName = "baha_news"
     val inputFile = "test_data/"+ fileName +".txt"
     val outputFile = "test_data/output_update/" + fileName
 
@@ -24,11 +24,11 @@ object RunTestTopWORDs {
     LOGGER.info("讀取檔案結束")
 
     new TopWORDS(
-      tauL = 1000,
+      tauL = 10,
       tauF = 3,
       textLenThld = 2000,
       useProbThld = 1E-8,
-      numIterations = 10,
+      numIterations = 3,
       convergeTol = 1E-3,
       wordBoundaryThld = 0.0)
       .run(corpus, outputFile + "/dictionary", outputFile + "/segmented_texts")

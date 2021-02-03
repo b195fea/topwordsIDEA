@@ -110,7 +110,7 @@ object Dictionary extends Serializable {
             }
           }
           iter = iter + 1
-          LOGGER.info("permutations:" + permutations)
+//          LOGGER.info("permutations:" + permutations)
           permutations
       //enumerate all the possible words: corpus -> words
       // 第一步驟 ： 將文字長度為1以及出現次數大於閾值的所有參數，加入詞典。(列舉所有可能的詞)

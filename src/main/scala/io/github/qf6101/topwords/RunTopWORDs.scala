@@ -11,7 +11,7 @@ object RunTopWORDs {
     // setup spark session
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
 
-    val fileName = "bh3_content"
+    val fileName = "baha_news"
     val inputFile = "test_data/"+ fileName +".txt"
     val outputFile = "test_data/output_origin/" + fileName
 

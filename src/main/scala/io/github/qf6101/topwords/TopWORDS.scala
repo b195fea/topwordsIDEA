@@ -28,7 +28,7 @@ class TopWORDS(private val tauL: Int,
                private val useProbThld: Double,
                private val wordBoundaryThld: Double = 0.0
               ) extends Serializable {
-  @transient private[this] val LOGGER = Logger.getLogger(this.getClass.toString)
+  @transient lazy val LOGGER = Logger.getLogger(this.getClass.toString)
   /**
     * Run the TopWORDS algorithm
     *
@@ -38,9 +38,12 @@ class TopWORDS(private val tauL: Int,
     */
   def run(corpus: RDD[String], outputDictLoc: String, outputCorpusLoc: String): Unit = {
     // preprocess the input corpus
+    LOGGER.info("開始運行")
     val texts = new Preprocessing(textLenThld).run(corpus).persist(StorageLevel.MEMORY_AND_DISK_SER_2)
+    LOGGER.info("取得分段文字")
     // generate the overcomplete dictionary
     var dict = Dictionary(texts, tauL, tauF, useProbThld)
+    LOGGER.info("取得過於龐大的字典")
     // initialize the loop variables
     var iter = 1
     var converged = false
@@ -48,10 +51,16 @@ class TopWORDS(private val tauL: Int,
     // EM loop
     while (!converged && iter <= numIterations) {
       // update and prune the dictionary
+      LOGGER.info("修改字典開始：updateDictionary:"+iter)
       val (updatedDict, likelihood) = updateDictionary(texts, dict)
+      LOGGER.info("修改字典結束：updateDictionary:"+iter)
+      LOGGER.info("修改字典開始：pruneDictionary:"+iter)
       dict = pruneDictionary(updatedDict)
       // log info of the current iteration
       LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+      LOGGER.info("(convergeTol)：" + (convergeTol))
       // test the convergence condition
       if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
         converged = true
@@ -81,6 +90,8 @@ class TopWORDS(private val tauL: Int,
     // calculating the likelihoods (P(T|theta)) and expectations (niS and riS)
     val dpResult = texts.map { T =>
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
+      LOGGER.info("likelihoods:"+likelihoods.length)
+      LOGGER.info("T:"+T.length)
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
     // extract the theta values
@@ -125,7 +136,10 @@ class TopWORDS(private val tauL: Int,
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
         val candidateWord = T.substring(m, m + t)
         if (dict.contains(candidateWord)) {
-          val rho = BigDecimal(dict.getTheta(candidateWord)) * likelihoods(m + t) / likelihoods(m)
+          var theta = dict.getTheta(candidateWord)
+          LOGGER.info("candidateWord:"+candidateWord)
+          LOGGER.info("theta:["+theta+"]"+"likelihoods,(m+t)：[" + likelihoods(m+t)+"],(m):["+likelihoods(m)+"]")
+          val rho = theta * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
       }
@@ -205,10 +219,17 @@ class TopWORDS(private val tauL: Int,
     for (m <- T.length - 1 to 0 by -1) {
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
+
+        var result = sum
         val candidateWord = T.substring(m, m + t)
         if (dict.contains(candidateWord)) {
-          sum + dict.getTheta(candidateWord) * likelihoods(m + t)
-        } else sum
+          result = sum + dict.getTheta(candidateWord) * likelihoods(m + t)
+        }
+
+        if (result == 0){
+          println("isDictionary:"+dict.contains(candidateWord)+"|| candidateWord:"+candidateWord)
+        }
+        result
       }
     }
     likelihoods

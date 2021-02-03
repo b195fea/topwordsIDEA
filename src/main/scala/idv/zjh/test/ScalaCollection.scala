@@ -7,8 +7,8 @@ import scala.collection.mutable.ListBuffer
  */
 object ScalaCollection {
   def main(args: Array[String]): Unit = {
-//    arrayDemo()
-    listDemo()
+    arrayDemo()
+//    listDemo()
 //    listBufferDemo()
 //    setDemo()
 //    tupleDemo()
@@ -23,6 +23,7 @@ object ScalaCollection {
     println("------------開始 array 示範------------")
     val numbers = Array(1, 2, 3, 4, 5, 1, 2, 3, 4, 5)
     println(numbers(0))
+    println(numbers.mkString(" "))
     println("------------結束 array 示範------------")
   }
 

@@ -5,7 +5,14 @@ package idv.zjh.test
  */
 object ScalaFunction {
   def main(args: Array[String]): Unit = {
-    demo1()
+    var a = 0.0000
+    if(a==0){
+      println(true)
+    }else{
+      println(false)
+    }
+
+//    demo1()
   }
 
   def demo1(): Unit ={

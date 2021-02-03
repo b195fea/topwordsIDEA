@@ -60,7 +60,7 @@ class TopWORDS(private val tauL: Int,
       dict = pruneDictionary(updatedDict)
       dict.tempSave(outputDictLoc,iter)
 
-      LOGGER.info("修改字典結束：pruneDictionary:"+iter)
+//      LOGGER.info("修改字典結束：pruneDictionary:"+iter)
       // log info of the current iteration
       LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
       LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
@@ -100,6 +100,7 @@ class TopWORDS(private val tauL: Int,
     val dpResult = texts.map { T =>
       // 动态编程的可能性倒推
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
+      LOGGER.info("likelihoods:"+likelihoods.length+"T:"+T.length)
       //关于预期的动态编程
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
@@ -140,23 +141,24 @@ class TopWORDS(private val tauL: Int,
     // expectations of word score: r_i(T_[>=m]) 期望文字使用分數
     val riTs = new DPCache(tauL, { previous: Double => 1.0 })
     // dynamic programming from text tail to head
+    LOGGER.info("T:"+T.toString()+"likelihoods:"+likelihoods.mkString(" "))
     for (m <- T.length - 1 to 0 by -1) {
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       // get all possible cuttings for T_m with one word in head and rest in tail
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
         val candidateWord = getWord(T,m, m + t)
-        LOGGER.info("candidateWord:"+candidateWord)
+
         if (dict.contains(candidateWord)) {
-          var theta = BigDecimal(dict.getTheta(candidateWord))
-          LOGGER.info("theta:["+theta+"]"+"likelihoods,(m+t)：[" + likelihoods(m)+"],(m):["+likelihoods(m)+"]")
+          var theta = dict.getTheta(candidateWord)
+          LOGGER.info("candidateWord:"+candidateWord+"theta:["+theta+"]"+"likelihoods,(m+t)：[" + likelihoods(m)+"],(m):["+likelihoods(m)+"]")
           val rho = theta * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
       }
 
-      cuttings.foreach( cut =>{
-        LOGGER.info("cut:"+cut)
-      })
+//      cuttings.foreach( cut =>{
+//        LOGGER.info("cut:"+cut)
+//      })
 
       // push cuttings to DP caches
       niTs.push(cuttings)
@@ -241,19 +243,23 @@ class TopWORDS(private val tauL: Int,
     for (m <- T.length - 1 to 0 by -1) {
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
-      LOGGER.info("tLimit:"+tLimit)
+//      LOGGER.info("tLimit:"+tLimit)
       var arrayRange = Array.range(1, tLimit + 1)
-      LOGGER.info("arrayRange:"+arrayRange.length)
+//      LOGGER.info("arrayRange:"+arrayRange.length)
       likelihoods(m) = arrayRange.foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-        LOGGER.info("T:"+T)
-        LOGGER.info("sum:"+sum)
-        LOGGER.info("m:"+m)
-        LOGGER.info("t:"+t)
+
+        var result = sum
         val candidateWord = getWord(T,m, m+t)
-        LOGGER.info("candidateWord:[" + candidateWord + "]")
+//        LOGGER.info("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
-          sum + dict.getTheta(candidateWord) * likelihoods(m + t)
+          result = sum + dict.getTheta(candidateWord) * likelihoods(m + t)
         } else sum
+
+        LOGGER.info("T:"+T+"sum:"+sum+"m:"+m+"t:"+t)
+        if (result == 0){
+          println("[Word]:"+candidateWord+"[isDict]:"+dict.contains(candidateWord)+"|| candidateWord:"+candidateWord)
+        }
+        result
       }
     }
     likelihoods
@@ -277,16 +283,18 @@ class TopWORDS(private val tauL: Int,
     for (m <- 1 to T.length) {
       val tLimit = if (m - tauL >= 0) tauL else m
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
+        var result = sum
         val candidateWord = getWord(T,m-t, m)
-        LOGGER.info("candidateWord:[" + candidateWord + "]")
+//        LOGGER.info("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
-          LOGGER.info("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
-          LOGGER.info("likelihoods(m - t):[" + likelihoods(m - t) + "]")
-          sum + dict.getTheta(candidateWord) * likelihoods(m - t)
-        } else {
-          LOGGER.info("sum:[" + sum + "]")
-          sum
+//          LOGGER.info("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
+//          LOGGER.info("likelihoods(m - t):[" + likelihoods(m - t) + "]")
+          result = sum + dict.getTheta(candidateWord) * likelihoods(m - t)
         }
+        if (result == 0){
+          println("isDictionary:"+dict.contains(candidateWord)+"|| candidateWord:"+candidateWord)
+        }
+        result
       }
     }
     likelihoods
@@ -303,9 +311,6 @@ class TopWORDS(private val tauL: Int,
 
     }catch{
       case e: IndexOutOfBoundsException => {
-        println("listString:"+ listString)
-        println("begin:"+ begin)
-        println("end:"+ end)
         throw new IndexOutOfBoundsException("You are not eligible")
       }
     }
