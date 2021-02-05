@@ -146,11 +146,13 @@ class TopWORDS(private val tauL: Int,
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       // get all possible cuttings for T_m with one word in head and rest in tail
       val cuttings = Array.range(1, tLimit + 1).flatMap { t =>
+
         val candidateWord = getWord(T,m, m + t)
 
         if (dict.contains(candidateWord)) {
           var theta = dict.getTheta(candidateWord)
-          LOGGER.info("candidateWord:"+candidateWord+"theta:["+theta+"]"+"likelihoods,(m+t)：[" + likelihoods(m)+"],(m):["+likelihoods(m)+"]")
+          LOGGER.info("T:"+t)
+          LOGGER.info("candidateWord:"+candidateWord+"theta:["+theta+"]"+"likelihoods,(m)：["+m+"|" + likelihoods(m)+"],(m+t):["+m+t +"|"+likelihoods(m+t)+"]")
           val rho = theta * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil

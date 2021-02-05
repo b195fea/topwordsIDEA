@@ -13,9 +13,23 @@ object scalaTest {
   }
 
   def test(): Unit ={
-    val likelihoods = Array.fill(10)(BigDecimal(0.0))
-    println(likelihoods.length)
+    var length = 10
+    val likelihoods = Array.fill(length)(BigDecimal(100.0))
+    likelihoods(length-1) = BigDecimal(100000.0)
+    for (m <- length - 1 to 0 by -1) {
+      likelihoods(m) = Array.range(1, length).foldLeft(BigDecimal(0.1)) { case (sum, t) =>
+        println("[sum]:"+sum+"[t]:"+t)
+        var result = sum
+        result
+      }
+    }
+
+    likelihoods.foreach(E =>{
+      println(E)
+    })
+
   }
+
 
 
 
