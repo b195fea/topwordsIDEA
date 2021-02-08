@@ -1,9 +1,12 @@
 package idv.zjh.topwords
 
+import idv.zjh.topwords.Dictionary.regex
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
+
+import scala.util.matching.Regex
 
 /**
  * Created by qfeng on 16-7-6.
@@ -29,6 +32,14 @@ class TopWORDS(private val tauL: Int,
                private val wordBoundaryThld: Double = 0.0
               ) extends Serializable {
   @transient lazy val LOGGER = Logger.getLogger(this.getClass.toString)
+  val regexUrl = "(https?://[\\w-\\.]+(:\\d+)?(\\/[~\\w\\/\\.]*)?(\\?\\S*)?(#\\S*)?)"
+  val regexEmail = "([a-zA-Z0-9._%-]+@([a-zA-Z0-9.-]+))"
+  val regexNumberSymbol = "([(\\w)(\\d)(/)(\\-)(\\.)]+)"
+  val regexSpecialSymbol = "(\\pP|\\pS|\\s| )+"
+  val regexChinese = "([\\u4E00-\\u9FFF])"
+  val regexOtherSymbol = "(\\W)"
+  val regex = regexUrl + "|" + regexEmail + "|" + regexNumberSymbol + "|" + regexSpecialSymbol + "|" + regexChinese + "|" + regexOtherSymbol
+  val pattern = new Regex(regex)
 
   /**
    * Run the TopWORDS algorithm
@@ -50,6 +61,9 @@ class TopWORDS(private val tauL: Int,
     var iter = 1
     var converged = false
     var lastLikelihood = -1.0
+
+
+
     // EM loop
     while (!converged && iter <= numIterations) {
 //      // update and prune the dictionary 對字典進行縮減（）
@@ -151,8 +165,7 @@ class TopWORDS(private val tauL: Int,
 
         if (dict.contains(candidateWord)) {
           var theta = dict.getTheta(candidateWord)
-          LOGGER.info("T:"+t)
-          LOGGER.info("candidateWord:"+candidateWord+"theta:["+theta+"]"+"likelihoods,(m)：["+m+"|" + likelihoods(m)+"],(m+t):["+m+t +"|"+likelihoods(m+t)+"]")
+          LOGGER.info("[T]"+T+"[candidateWord]"+candidateWord+"[theta]"+theta+"[m]"+m+"[likelihoods(m)]"+ likelihoods(m)+"[m+t]"+(m+t) +"[likelihoods(m+t)]"+likelihoods(m+t))
           val rho = theta * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
@@ -181,7 +194,7 @@ class TopWORDS(private val tauL: Int,
     // prune thetaS by use probability threshold
     val smoothMin = dict.thetaS.filter(_._2 > 0).values.min
     val prunedThetaS = dict.thetaS.filter { case (word, theta) =>
-      word.length == 1 || theta >= useProbThld
+      word.length == 1 || word.matches(regex)|| theta >= useProbThld
     }.map { case (word, theta) =>
       // smooth single character's zero theta
       if (theta <= 0) word -> smoothMin else word -> theta
@@ -249,17 +262,15 @@ class TopWORDS(private val tauL: Int,
       var arrayRange = Array.range(1, tLimit + 1)
 //      LOGGER.info("arrayRange:"+arrayRange.length)
       likelihoods(m) = arrayRange.foldLeft(BigDecimal(0.0)) { case (sum, t) =>
-
         var result = sum
         val candidateWord = getWord(T,m, m+t)
-//        LOGGER.info("candidateWord:[" + candidateWord + "]")
         if (dict.contains(candidateWord)) {
           result = sum + dict.getTheta(candidateWord) * likelihoods(m + t)
         } else sum
 
-        LOGGER.info("T:"+T+"sum:"+sum+"m:"+m+"t:"+t)
-        if (result == 0){
-          println("[Word]:"+candidateWord+"[isDict]:"+dict.contains(candidateWord)+"|| candidateWord:"+candidateWord)
+        LOGGER.info("[T]"+T+"[word]"+candidateWord+"[sum]"+sum+"[result]"+result+"[m]"+m+"[t]"+t+"[isDict]"+dict.contains(candidateWord)+"[Theta]"+dict.getTheta(candidateWord)+"[likelihoods(m + t)]"+likelihoods(m + t))
+        if (result == 0.0){
+          println("[candidateWord]"+candidateWord+"[isDict]"+dict.contains(candidateWord)+"[candidateWord]"+candidateWord)
         }
         result
       }
@@ -287,14 +298,12 @@ class TopWORDS(private val tauL: Int,
       likelihoods(m) = Array.range(1, tLimit + 1).foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         var result = sum
         val candidateWord = getWord(T,m-t, m)
-//        LOGGER.info("candidateWord:[" + candidateWord + "]")
+
         if (dict.contains(candidateWord)) {
-//          LOGGER.info("dict.getTheta(candidateWord):[" + dict.getTheta(candidateWord) + "]")
-//          LOGGER.info("likelihoods(m - t):[" + likelihoods(m - t) + "]")
           result = sum + dict.getTheta(candidateWord) * likelihoods(m - t)
         }
         if (result == 0){
-          println("isDictionary:"+dict.contains(candidateWord)+"|| candidateWord:"+candidateWord)
+          println("[isDictionary"+dict.contains(candidateWord)+"[candidateWord]"+candidateWord)
         }
         result
       }

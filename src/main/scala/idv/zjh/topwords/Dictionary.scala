@@ -123,8 +123,6 @@ object Dictionary extends Serializable {
       word.length == 1 || word.matches(regex) ||freq >= tauF
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
 
-
-
     //filter words by the use probability threshold: words -> prunedWords
     // 第二步驟：單字長度為1的詞，並計算出現頻率大於1E - 8 次方，視為單詞
     val sumWordFreq = words.map(_._2).sum()
@@ -145,6 +143,8 @@ object Dictionary extends Serializable {
       word -> freq / sumPrunedWordFreq
     }.collectAsMap().toMap
     prunedWords.unpersist()
+
+
     //return the overcomplete dictionary: normalizedWords -> dictionary
 //    println("normalizedWords:" + normalizedWords)
     var d = new Dictionary(normalizedWords)

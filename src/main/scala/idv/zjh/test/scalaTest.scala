@@ -18,10 +18,11 @@ object scalaTest {
     likelihoods(length-1) = BigDecimal(100000.0)
     for (m <- length - 1 to 0 by -1) {
       likelihoods(m) = Array.range(1, length).foldLeft(BigDecimal(0.1)) { case (sum, t) =>
-        println("[sum]:"+sum+"[t]:"+t)
-        var result = sum
+        var result = sum + 1
+        println("[result]:"+result+"[sum]:"+sum+"[t]:"+t+"[m]:"+m)
         result
       }
+      println("[likelihoods(m)]:"+likelihoods(m)+"[m]:"+m)
     }
 
     likelihoods.foreach(E =>{
