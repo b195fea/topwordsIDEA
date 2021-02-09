@@ -114,7 +114,7 @@ class TopWORDS(private val tauL: Int,
     val dpResult = texts.map { T =>
       // 动态编程的可能性倒推
       val likelihoods = DPLikelihoodsBackward(T, dictBC.value)
-      LOGGER.info("likelihoods:"+likelihoods.length+"T:"+T.length)
+//      LOGGER.info("likelihoods:"+likelihoods.length+"T:"+T.length)
       //关于预期的动态编程
       (likelihoods(0), DPExpectations(T, dictBC.value, likelihoods))
     }.persist(StorageLevel.MEMORY_AND_DISK_SER_2)
@@ -155,7 +155,7 @@ class TopWORDS(private val tauL: Int,
     // expectations of word score: r_i(T_[>=m]) 期望文字使用分數
     val riTs = new DPCache(tauL, { previous: Double => 1.0 })
     // dynamic programming from text tail to head
-    LOGGER.info("T:"+T.toString()+"likelihoods:"+likelihoods.mkString(" "))
+//    LOGGER.info("T:"+T.toString()+"likelihoods:"+likelihoods.mkString(" "))
     for (m <- T.length - 1 to 0 by -1) {
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
       // get all possible cuttings for T_m with one word in head and rest in tail
@@ -165,15 +165,11 @@ class TopWORDS(private val tauL: Int,
 
         if (dict.contains(candidateWord)) {
           var theta = dict.getTheta(candidateWord)
-          LOGGER.info("[T]"+T+"[candidateWord]"+candidateWord+"[theta]"+theta+"[m]"+m+"[likelihoods(m)]"+ likelihoods(m)+"[m+t]"+(m+t) +"[likelihoods(m+t)]"+likelihoods(m+t))
+//          LOGGER.info("[T]"+T+"[candidateWord]"+candidateWord+"[theta]"+theta+"[m]"+m+"[likelihoods(m)]"+ likelihoods(m)+"[m+t]"+(m+t) +"[likelihoods(m+t)]"+likelihoods(m+t))
           val rho = theta * likelihoods(m + t) / likelihoods(m)
           Some(candidateWord, t, rho.toDouble)
         } else Nil
       }
-
-//      cuttings.foreach( cut =>{
-//        LOGGER.info("cut:"+cut)
-//      })
 
       // push cuttings to DP caches
       niTs.push(cuttings)
@@ -258,9 +254,7 @@ class TopWORDS(private val tauL: Int,
     for (m <- T.length - 1 to 0 by -1) {
       // tauL：文字最長為多少
       val tLimit = if (m + tauL <= T.length) tauL else T.length - m
-//      LOGGER.info("tLimit:"+tLimit)
       var arrayRange = Array.range(1, tLimit + 1)
-//      LOGGER.info("arrayRange:"+arrayRange.length)
       likelihoods(m) = arrayRange.foldLeft(BigDecimal(0.0)) { case (sum, t) =>
         var result = sum
         val candidateWord = getWord(T,m, m+t)
@@ -268,10 +262,7 @@ class TopWORDS(private val tauL: Int,
           result = sum + dict.getTheta(candidateWord) * likelihoods(m + t)
         } else sum
 
-        LOGGER.info("[T]"+T+"[word]"+candidateWord+"[sum]"+sum+"[result]"+result+"[m]"+m+"[t]"+t+"[isDict]"+dict.contains(candidateWord)+"[Theta]"+dict.getTheta(candidateWord)+"[likelihoods(m + t)]"+likelihoods(m + t))
-        if (result == 0.0){
-          println("[candidateWord]"+candidateWord+"[isDict]"+dict.contains(candidateWord)+"[candidateWord]"+candidateWord)
-        }
+        //LOGGER.info("[T]"+T+"[word]"+candidateWord+"[sum]"+sum+"[result]"+result+"[m]"+m+"[t]"+t+"[isDict]"+dict.contains(candidateWord)+"[Theta]"+dict.getTheta(candidateWord)+"[likelihoods(m + t)]"+likelihoods(m + t))
         result
       }
     }
@@ -301,9 +292,6 @@ class TopWORDS(private val tauL: Int,
 
         if (dict.contains(candidateWord)) {
           result = sum + dict.getTheta(candidateWord) * likelihoods(m - t)
-        }
-        if (result == 0){
-          println("[isDictionary"+dict.contains(candidateWord)+"[candidateWord]"+candidateWord)
         }
         result
       }

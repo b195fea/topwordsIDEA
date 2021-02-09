@@ -13,7 +13,7 @@ object RunTestTopWORDs {
     LOGGER.info("開始運行")
     val spark = SparkSession.builder().master("local[1]").appName(this.getClass.toString).getOrCreate()
 //    val fileName = "test1"
-    val fileName = "baha_news"
+    val fileName = "bh3_content"
     val inputFile = "test_data/"+ fileName +".txt"
     val outputFile = "test_data/output_update/" + fileName
 
