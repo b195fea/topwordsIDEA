@@ -74,12 +74,12 @@ class TopWORDS(private val tauL: Int,
       dict = pruneDictionary(updatedDict)
       dict.tempSave(outputDictLoc,iter)
 
-//      LOGGER.info("修改字典結束：pruneDictionary:"+iter)
+      LOGGER.info("修改字典結束：pruneDictionary:"+iter)
       // log info of the current iteration
-      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
-      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
-      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
-      LOGGER.info("(convergeTol)：" + (convergeTol))
+//      LOGGER.info("Iteration : " + iter + ", likelihood: " + likelihood + ", dictionary: " + dict.thetaS.size)
+//      LOGGER.info("(likelihood - lastLikelihood)：" + (likelihood - lastLikelihood))
+//      LOGGER.info("math.abs((likelihood - lastLikelihood) / lastLikelihood)：" + math.abs((likelihood - lastLikelihood) / lastLikelihood))
+//      LOGGER.info("(convergeTol)：" + (convergeTol))
 
       if (lastLikelihood > 0 && math.abs((likelihood - lastLikelihood) / lastLikelihood) < convergeTol) {
         converged = true

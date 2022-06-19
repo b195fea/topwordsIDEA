@@ -23,7 +23,7 @@ class Preprocessing(private val textLenThld: Int) extends Serializable {
     // importing spark implicits
     corpus.flatMap { T =>
       // split the paragraph into several texts using punctuations and spaces
-      T.split("\\pP|\\pS|\\s|　").map(_.trim)
+      T.split("\\pP|\\pS|\\s").map(_.trim)
     }.filter(_.length > 1).flatMap { T =>
       // split text according to text length threshold
       if (T.length > textLenThld) {
